@@ -10,24 +10,25 @@ import { User } from './user/entities/user.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({
+      isGlobal: true,
       envFilePath:
         process.env.NODE_ENV == 'production' ? '.prod.env' : '.dev.env',
       validationSchema: Joi.object({
         NODE_ENV: Joi.string().valid('development', 'production', 'test'),
-        DATABASE_PORT: Joi.string(),
-        DATABASE_USER: Joi.string(),
-        DATABASE_PASSWORD: Joi.string(),
-        DATABASE_NAME: Joi.string(),
+        DATABASE_URL: Joi.string(),
+        JWT_KEY: Joi.string(),
       }),
     }),
-    GraphQLModule.forRoot({ driver: ApolloDriver, autoSchemaFile: true }),
+    GraphQLModule.forRoot({
+      driver: ApolloDriver,
+      autoSchemaFile: true,
+      context: ({ req }) => {
+        console.log(req);
+      },
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: +process.env.DATABASE_PORT,
-      username: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
+      url: process.env.DATABASE_URL,
       entities: [User],
       synchronize: true,
     }),
