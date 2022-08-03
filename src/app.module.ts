@@ -1,11 +1,19 @@
 import { ApolloDriver } from '@nestjs/apollo';
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import * as Joi from 'joi';
 import { User } from './user/entities/user.entity';
+import { JwtModule } from './jwt/jwt.module';
+import { JwtMiddleware } from './jwt/jwt.middleware';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -23,7 +31,7 @@ import { User } from './user/entities/user.entity';
       driver: ApolloDriver,
       autoSchemaFile: true,
       context: ({ req }) => {
-        console.log(req);
+        return { loggedInUser: req.user };
       },
     }),
     TypeOrmModule.forRoot({
@@ -33,8 +41,16 @@ import { User } from './user/entities/user.entity';
       synchronize: true,
     }),
     UserModule,
+    JwtModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(JwtMiddleware)
+      .forRoutes({ path: '/graphql', method: RequestMethod.ALL });
+  }
+}

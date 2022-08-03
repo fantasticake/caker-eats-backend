@@ -1,5 +1,9 @@
+import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { LoggedInUser } from 'src/auth/decorators/logged-in-user.decorator';
 import { CreateUserInput, CreateUserOutput } from './dtos/create-user.dto';
+import { DeleteUserOutput } from './dtos/delete-user.dto';
 import { EditUserInput, EditUserOutput } from './dtos/edit-user.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
 import { SeeMeOutput } from './dtos/see-me.dto';
@@ -15,18 +19,29 @@ export class UserResolver {
     return this.userService.createUser(input);
   }
 
+  @UseGuards(AuthGuard)
+  @Mutation(returns => EditUserOutput)
+  editUser(
+    @Args('input') input: EditUserInput,
+    @LoggedInUser() loggedInUser: User,
+  ): Promise<EditUserOutput> {
+    return this.userService.editUser(input, loggedInUser);
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(returns => DeleteUserOutput)
+  deleteUser(@LoggedInUser() loggedInUser: User): Promise<DeleteUserOutput> {
+    return this.userService.deleteUser(loggedInUser);
+  }
+
   @Mutation(returns => LoginOutput)
   login(@Args('input') input: LoginInput): Promise<LoginOutput> {
     return this.userService.login(input);
   }
 
-  @Mutation(returns => EditUserOutput)
-  editUser(@Args('input') input: EditUserInput) {
-    //todo
-  }
-
+  @UseGuards(AuthGuard)
   @Query(returns => SeeMeOutput)
-  seeMe() {
-    //todo
+  seeMe(@LoggedInUser() loggedInUser: User) {
+    return loggedInUser;
   }
 }
