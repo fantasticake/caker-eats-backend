@@ -5,10 +5,12 @@ import { CreateUserInput, CreateUserOutput } from './dtos/create-user.dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from 'src/jwt/jwt.service';
 import { EditUserInput, EditUserOutput } from './dtos/edit-user.dto';
 import { DeleteUserOutput } from './dtos/delete-user.dto';
+import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
+import { Verification } from './entities/verification.entity';
+import { MailService } from 'src/mail/mail.service';
 
 const HASH_ROUNDS = 10;
 
@@ -16,8 +18,10 @@ const HASH_ROUNDS = 10;
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly usersRepository: Repository<User>,
-    private readonly configService: ConfigService,
+    @InjectRepository(Verification)
+    private readonly verificationsRepository: Repository<Verification>,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
   findById(id: number): Promise<User> {
     return this.usersRepository.findOneBy({ id });
@@ -33,6 +37,16 @@ export class UserService {
       const hashed = await bcrypt.hash(input.password, HASH_ROUNDS);
       this.usersRepository.save(
         this.usersRepository.create({ ...input, password: hashed }),
+      );
+      const verification = await this.verificationsRepository.save(
+        this.verificationsRepository.create({
+          code: Date.now() + '',
+          email: input.email,
+        }),
+      );
+      await this.mailService.sendVerificationEmail(
+        input.email,
+        verification.code,
       );
       return { ok: true };
     } catch (error) {
@@ -65,6 +79,13 @@ export class UserService {
           email: input.email,
         });
         if (existingUser) return { ok: false, error: 'Email already exists.' };
+        this.verificationsRepository.delete({ email: user.email });
+        this.verificationsRepository.save(
+          this.verificationsRepository.create({
+            code: Date.now() + '',
+            email: input.email,
+          }),
+        );
       }
       let hashed;
       if (input?.password)
@@ -88,6 +109,27 @@ export class UserService {
       return { ok: true };
     } catch {
       return { ok: false, error: 'Cannot delete user.' };
+    }
+  }
+
+  async verifyEmail(
+    input: VerifyEmailInput,
+    user: User,
+  ): Promise<VerifyEmailOutput> {
+    try {
+      const verification = await this.verificationsRepository.findOneBy({
+        code: input.code,
+        email: user.email,
+      });
+      if (!verification) {
+        return { ok: false, error: 'Invalid verification code' };
+      }
+      user.verified = true;
+      await this.usersRepository.save(user);
+      await this.verificationsRepository.delete({ code: input.code });
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'Cannot verify email.' };
     }
   }
 }

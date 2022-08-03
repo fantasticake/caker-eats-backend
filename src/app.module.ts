@@ -14,6 +14,8 @@ import { User } from './user/entities/user.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
+import { Verification } from './user/entities/verification.entity';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { AuthModule } from './auth/auth.module';
         NODE_ENV: Joi.string().valid('development', 'production', 'test'),
         DATABASE_URL: Joi.string(),
         JWT_KEY: Joi.string(),
+        MAILGUN_API_KEY: Joi.string(),
+        MAILGUN_DOMAIN: Joi.string(),
       }),
     }),
     GraphQLModule.forRoot({
@@ -37,12 +41,13 @@ import { AuthModule } from './auth/auth.module';
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
-      entities: [User],
+      entities: [User, Verification],
       synchronize: true,
     }),
     UserModule,
     JwtModule,
     AuthModule,
+    MailModule,
   ],
   controllers: [],
   providers: [],

@@ -7,6 +7,7 @@ import { DeleteUserOutput } from './dtos/delete-user.dto';
 import { EditUserInput, EditUserOutput } from './dtos/edit-user.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
 import { SeeMeOutput } from './dtos/see-me.dto';
+import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
 import { User } from './entities/user.entity';
 import { UserService } from './user.service';
 
@@ -41,7 +42,16 @@ export class UserResolver {
 
   @UseGuards(AuthGuard)
   @Query(returns => SeeMeOutput)
-  seeMe(@LoggedInUser() loggedInUser: User) {
-    return loggedInUser;
+  seeMe(@LoggedInUser() loggedInUser: User): SeeMeOutput {
+    return { ok: true, result: loggedInUser };
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(returns => VerifyEmailOutput)
+  verifyEmail(
+    @Args('input') input: VerifyEmailInput,
+    @LoggedInUser() loggedInUser: User,
+  ): Promise<VerifyEmailOutput> {
+    return this.userService.verifyEmail(input, loggedInUser);
   }
 }
