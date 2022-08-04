@@ -2,7 +2,7 @@ import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { SharedEntity } from 'src/shared/shared.entity';
 import { Column, Entity } from 'typeorm';
 
-enum UserRole {
+export enum UserRole {
   Customer = 'Customer',
   Owner = 'Owner',
   Driver = 'Driver',

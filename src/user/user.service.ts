@@ -12,7 +12,7 @@ import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
 import { Verification } from './entities/verification.entity';
 import { MailService } from 'src/mail/mail.service';
 
-const HASH_ROUNDS = 10;
+export const HASH_ROUNDS = 10;
 
 @Injectable()
 export class UserService {
@@ -79,24 +79,28 @@ export class UserService {
           email: input.email,
         });
         if (existingUser) return { ok: false, error: 'Email already exists.' };
+      }
+      let hashed;
+      if (input?.password)
+        hashed = await bcrypt.hash(input.password, HASH_ROUNDS);
+      await this.usersRepository.save({
+        id: user.id,
+        ...(input?.email && { email: input.email }),
+        ...(input?.password && { password: hashed }),
+      });
+      if (input.email) {
         this.verificationsRepository.delete({ email: user.email });
-        this.verificationsRepository.save(
+        const verification = await this.verificationsRepository.save(
           this.verificationsRepository.create({
             code: Date.now() + '',
             email: input.email,
           }),
         );
+        await this.mailService.sendVerificationEmail(
+          input.email,
+          verification.code,
+        );
       }
-      let hashed;
-      if (input?.password)
-        hashed = await bcrypt.hash(input.password, HASH_ROUNDS);
-      await this.usersRepository.save([
-        {
-          id: user.id,
-          ...(input?.email && { email: input.email }),
-          ...(input?.password && { password: hashed }),
-        },
-      ]);
       return { ok: true };
     } catch {
       return { ok: false, error: 'Cannot edit user.' };
