@@ -14,7 +14,6 @@ export class MailService {
       from: 'Caker eats <cakereats@cakereats.gmail.com>',
       to: email,
       subject: 'Caker eats verify email',
-      text: code,
       template: 'verify-email',
       'v:username': email,
       'v:verifyLink': `localhost:4000/verify-email/${code}`,

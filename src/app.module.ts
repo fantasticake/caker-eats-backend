@@ -22,7 +22,11 @@ import { MailModule } from './mail/mail.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath:
-        process.env.NODE_ENV == 'production' ? '.prod.env' : '.dev.env',
+        process.env.NODE_ENV == 'production'
+          ? '.prod.env'
+          : process.env.NODE_ENV == 'development'
+          ? '.dev.env'
+          : '.test.env',
       validationSchema: Joi.object({
         NODE_ENV: Joi.string().valid('development', 'production', 'test'),
         DATABASE_URL: Joi.string(),
@@ -43,6 +47,7 @@ import { MailModule } from './mail/mail.module';
       url: process.env.DATABASE_URL,
       entities: [User, Verification],
       synchronize: true,
+      dropSchema: process.env.NODE_ENV == 'test',
     }),
     UserModule,
     JwtModule,
