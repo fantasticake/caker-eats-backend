@@ -1,7 +1,6 @@
-import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { AuthGuard } from 'src/auth/auth.guard';
 import { LoggedInUser } from 'src/auth/decorators/logged-in-user.decorator';
+import { Role } from 'src/auth/decorators/role.decorator';
 import { CreateUserInput, CreateUserOutput } from './dtos/create-user.dto';
 import { DeleteUserOutput } from './dtos/delete-user.dto';
 import { EditUserInput, EditUserOutput } from './dtos/edit-user.dto';
@@ -20,7 +19,7 @@ export class UserResolver {
     return this.userService.createUser(input);
   }
 
-  @UseGuards(AuthGuard)
+  @Role(['Any'])
   @Mutation(returns => EditUserOutput)
   editUser(
     @Args('input') input: EditUserInput,
@@ -29,7 +28,7 @@ export class UserResolver {
     return this.userService.editUser(input, loggedInUser);
   }
 
-  @UseGuards(AuthGuard)
+  @Role(['Any'])
   @Mutation(returns => DeleteUserOutput)
   deleteUser(@LoggedInUser() loggedInUser: User): Promise<DeleteUserOutput> {
     return this.userService.deleteUser(loggedInUser);
@@ -40,13 +39,13 @@ export class UserResolver {
     return this.userService.login(input);
   }
 
-  @UseGuards(AuthGuard)
+  @Role(['Any'])
   @Query(returns => SeeMeOutput)
   seeMe(@LoggedInUser() loggedInUser: User): SeeMeOutput {
     return { ok: true, result: loggedInUser };
   }
 
-  @UseGuards(AuthGuard)
+  @Role(['Any'])
   @Mutation(returns => VerifyEmailOutput)
   verifyEmail(
     @Args('input') input: VerifyEmailInput,

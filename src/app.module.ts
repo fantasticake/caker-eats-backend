@@ -16,6 +16,8 @@ import { JwtMiddleware } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
 import { Verification } from './user/entities/verification.entity';
 import { MailModule } from './mail/mail.module';
+import { RestaurantModule } from './restaurant/restaurant.module';
+import { Restaurant } from './restaurant/entities/restaurant.entity';
 
 @Module({
   imports: [
@@ -45,7 +47,7 @@ import { MailModule } from './mail/mail.module';
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
-      entities: [User, Verification],
+      entities: [User, Verification, Restaurant],
       synchronize: true,
       dropSchema: process.env.NODE_ENV == 'test',
     }),
@@ -53,6 +55,7 @@ import { MailModule } from './mail/mail.module';
     JwtModule,
     AuthModule,
     MailModule,
+    RestaurantModule,
   ],
   controllers: [],
   providers: [],

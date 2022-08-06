@@ -1,6 +1,7 @@
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Restaurant } from 'src/restaurant/entities/restaurant.entity';
 import { SharedEntity } from 'src/shared/shared.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToOne, RelationId } from 'typeorm';
 
 export enum UserRole {
   Customer = 'Customer',
@@ -28,4 +29,13 @@ export class User extends SharedEntity {
   @Column({ default: false })
   @Field(type => Boolean)
   verified: boolean;
+
+  @OneToOne(type => Restaurant, (restaurant: Restaurant) => restaurant.owner, {
+    nullable: true,
+  })
+  @Field(type => Restaurant, { nullable: true })
+  restaurant?: Restaurant;
+
+  @RelationId((user: User) => user.restaurant)
+  restaurantId?: number;
 }
