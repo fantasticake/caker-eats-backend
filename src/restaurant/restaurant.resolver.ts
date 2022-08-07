@@ -19,7 +19,10 @@ import {
   SeeRestaurantInput,
   SeeRestaurantOutput,
 } from './dtos/see-restaurant.dto';
-import { SeeRestaurantsOutput } from './dtos/see-restaurants.dto';
+import {
+  SeeRestaurantsInput,
+  SeeRestaurantsOutput,
+} from './dtos/see-restaurants.dto';
 import { Restaurant } from './entities/restaurant.entity';
 import { RestaurantService } from './restaurant.service';
 
@@ -37,8 +40,10 @@ export class RestaurantResolver {
   }
 
   @Query(returns => SeeRestaurantsOutput)
-  seeRestaurants(): Promise<SeeRestaurantsOutput> {
-    return this.restaurantService.seeRestaurants();
+  seeRestaurants(
+    @Args('input') input: SeeRestaurantsInput,
+  ): Promise<SeeRestaurantsOutput> {
+    return this.restaurantService.seeRestaurants(input);
   }
 
   @Query(returns => SeeRestaurantOutput)

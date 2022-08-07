@@ -7,6 +7,7 @@ export enum UserRole {
   Customer = 'Customer',
   Owner = 'Owner',
   Driver = 'Driver',
+  Admin = 'Admin',
 }
 
 registerEnumType(UserRole, { name: 'UserRole' });

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PAGINATION_TAKE } from 'src/shared/shared.constants';
 import { User } from 'src/user/entities/user.entity';
 import { ILike, Repository } from 'typeorm';
 import {
@@ -19,7 +20,11 @@ import {
   SeeRestaurantInput,
   SeeRestaurantOutput,
 } from './dtos/see-restaurant.dto';
-import { SeeRestaurantsOutput } from './dtos/see-restaurants.dto';
+import {
+  SeeRestaurantsInput,
+  SeeRestaurantsOutput,
+} from './dtos/see-restaurants.dto';
+import { Category } from './entities/catergory.entitiy';
 import { Restaurant } from './entities/restaurant.entity';
 
 @Injectable()
@@ -27,6 +32,8 @@ export class RestaurantService {
   constructor(
     @InjectRepository(Restaurant)
     private readonly restaurantsRepository: Repository<Restaurant>,
+    @InjectRepository(Category)
+    private readonly categoriesRepository: Repository<Category>,
   ) {}
   async createRestaurant(
     input: CreateRestaurantInput,
@@ -41,8 +48,17 @@ export class RestaurantService {
       });
       if (existingRestaurant)
         return { ok: false, error: 'Restaurant name already exists.' };
+      const existingCategory = await this.categoriesRepository.findOneBy({
+        id: input.categoryId,
+      });
+      if (!existingCategory)
+        return { ok: false, error: 'Category does not exists.' };
       await this.restaurantsRepository.save(
-        this.restaurantsRepository.create({ ...input, owner: loggedInUser }),
+        this.restaurantsRepository.create({
+          name: input.name,
+          owner: loggedInUser,
+          category: existingCategory,
+        }),
       );
       return { ok: true };
     } catch {
@@ -50,10 +66,20 @@ export class RestaurantService {
     }
   }
 
-  async seeRestaurants(): Promise<SeeRestaurantsOutput> {
+  async seeRestaurants(
+    input: SeeRestaurantsInput,
+  ): Promise<SeeRestaurantsOutput> {
     try {
-      const restaurants = await this.restaurantsRepository.find();
-      return { ok: true, result: restaurants };
+      const [restaurants, totalRestaurants] =
+        await this.restaurantsRepository.findAndCount({
+          skip: (input.page - 1) * PAGINATION_TAKE,
+          take: PAGINATION_TAKE,
+        });
+      return {
+        ok: true,
+        result: restaurants,
+        totalPages: Math.ceil(totalRestaurants / PAGINATION_TAKE),
+      };
     } catch {
       return { ok: false, error: 'Cannot see restaurants.' };
     }
@@ -61,8 +87,11 @@ export class RestaurantService {
 
   async seeRestaurant(input: SeeRestaurantInput): Promise<SeeRestaurantOutput> {
     try {
-      const restaurant = await this.restaurantsRepository.findOneBy({
-        id: input.restaurantId,
+      const restaurant = await this.restaurantsRepository.findOne({
+        where: {
+          id: input.restaurantId,
+        },
+        relations: ['menu'],
       });
       if (!restaurant)
         return {
@@ -83,17 +112,31 @@ export class RestaurantService {
       if (!loggedInUser.restaurantId) {
         return { ok: false, error: 'Restaurant not exists.' };
       }
-      const existingRestaurant = await this.restaurantsRepository.findOneBy({
-        name: input.name,
-      });
-      if (existingRestaurant)
-        return {
-          ok: false,
-          error: 'Restaurant name already exists.',
-        };
+      if (input.name) {
+        const existingRestaurant = await this.restaurantsRepository.findOneBy({
+          name: input.name,
+        });
+        if (existingRestaurant)
+          return {
+            ok: false,
+            error: 'Restaurant name already exists.',
+          };
+      }
+      if (input.categoryId) {
+        const existingCategory = await this.categoriesRepository.findOneBy({
+          id: input.id,
+        });
+        if (!existingCategory)
+          return { ok: false, error: 'Category not found.' };
+      }
       await this.restaurantsRepository.save({
         id: loggedInUser.restaurantId,
-        ...input,
+        ...(input.name && {
+          name: input.name,
+        }),
+        ...(input.categoryId && {
+          category: { id: input.categoryId },
+        }),
       });
       return { ok: true };
     } catch {
@@ -122,10 +165,19 @@ export class RestaurantService {
   ): Promise<SearchRestaurantOutput> {
     try {
       if (!input.key) return { ok: false, error: 'Key must me provided' };
-      const restaurants = await this.restaurantsRepository.findBy({
-        name: ILike(`%${input.key}%`),
-      });
-      return { ok: true, result: restaurants };
+      const [restaurants, totalRestaurants] =
+        await this.restaurantsRepository.findAndCount({
+          where: {
+            name: ILike(`%${input.key}%`),
+          },
+          skip: (input.page - 1) * PAGINATION_TAKE,
+          take: PAGINATION_TAKE,
+        });
+      return {
+        ok: true,
+        result: restaurants,
+        totalPages: Math.ceil(totalRestaurants / PAGINATION_TAKE),
+      };
     } catch {
       return { ok: false, error: 'Cannot search restaurant.' };
     }
