@@ -5,7 +5,6 @@ import { Repository } from 'typeorm';
 import { CreateDishInput, CreateDishOutput } from './dtos/create-dish.dto';
 import { DeleteDishInput, DeleteDishOutput } from './dtos/delete-dish.dto';
 import { EditDishInput, EditDishOutput } from './dtos/edit-dish.dto';
-import { SeeDishesInput, SeeDishesOutput } from './dtos/see-dished.dto';
 import { Dish } from './entities/dish.entity';
 import { Restaurant } from './entities/restaurant.entity';
 
@@ -33,22 +32,6 @@ export class DishService {
       return { ok: true };
     } catch {
       return { ok: false, error: 'Cannot create a dish.' };
-    }
-  }
-
-  async seeDishes(input: SeeDishesInput): Promise<SeeDishesOutput> {
-    const existingRestaurant = await this.restaurantsRepository.findOneBy({
-      id: input.restaurantId,
-    });
-    try {
-      if (!existingRestaurant)
-        return { ok: false, error: 'Restaurant not found.' };
-      const dishes = await this.dishesRepository.findBy({
-        restaurant: { id: input.restaurantId },
-      });
-      return { ok: true, result: dishes };
-    } catch {
-      return { ok: false, error: 'Cannot see dishes.' };
     }
   }
 

@@ -1,4 +1,4 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { LoggedInUser } from 'src/auth/decorators/logged-in-user.decorator';
 import { Role } from 'src/auth/decorators/role.decorator';
 import { User, UserRole } from 'src/user/entities/user.entity';
@@ -6,7 +6,6 @@ import { DishService } from './dish.service';
 import { CreateDishInput, CreateDishOutput } from './dtos/create-dish.dto';
 import { DeleteDishInput, DeleteDishOutput } from './dtos/delete-dish.dto';
 import { EditDishInput, EditDishOutput } from './dtos/edit-dish.dto';
-import { SeeDishesInput, SeeDishesOutput } from './dtos/see-dished.dto';
 import { Dish } from './entities/dish.entity';
 
 @Resolver(of => Dish)
@@ -20,11 +19,6 @@ export class DishResolver {
     @LoggedInUser() loggedInUser: User,
   ): Promise<CreateDishOutput> {
     return this.dishService.createDish(input, loggedInUser);
-  }
-
-  @Query(returns => SeeDishesOutput)
-  seeDishes(@Args('input') input: SeeDishesInput): Promise<SeeDishesOutput> {
-    return this.dishService.seeDishes(input);
   }
 
   @Role([UserRole.Owner])
