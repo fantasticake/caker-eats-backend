@@ -10,7 +10,7 @@ import { Restaurant } from '../entities/restaurant.entity';
 
 @InputType()
 export class EditRestaurantInput extends PartialType(
-  PickType(Restaurant, ['name'], InputType),
+  PickType(Restaurant, ['name', 'imageUrl'], InputType),
 ) {
   @Field(type => Number, { nullable: true })
   categoryId?: number;

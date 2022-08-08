@@ -20,6 +20,8 @@ import { RestaurantModule } from './restaurant/restaurant.module';
 import { Restaurant } from './restaurant/entities/restaurant.entity';
 import { Category } from './restaurant/entities/catergory.entitiy';
 import { Dish } from './restaurant/entities/dish.entity';
+import { OrderModule } from './order/order.module';
+import { Order } from './order/entities/order.entity';
 
 @Module({
   imports: [
@@ -49,7 +51,7 @@ import { Dish } from './restaurant/entities/dish.entity';
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
-      entities: [User, Verification, Restaurant, Category, Dish],
+      entities: [User, Verification, Restaurant, Category, Dish, Order],
       synchronize: true,
       dropSchema: process.env.NODE_ENV == 'test',
     }),
@@ -58,6 +60,7 @@ import { Dish } from './restaurant/entities/dish.entity';
     AuthModule,
     MailModule,
     RestaurantModule,
+    OrderModule,
   ],
   controllers: [],
   providers: [],

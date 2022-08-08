@@ -1,4 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql';
+import { Order } from 'src/order/entities/order.entity';
 import { SharedEntity } from 'src/shared/shared.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
@@ -19,6 +20,10 @@ export class Restaurant extends SharedEntity {
   @Field(type => String)
   name: string;
 
+  @Column({ nullable: true })
+  @Field(type => String, { nullable: true })
+  imageUrl?: string;
+
   @OneToOne(type => User, { onDelete: 'CASCADE' })
   @JoinColumn()
   @Field(type => User)
@@ -31,4 +36,8 @@ export class Restaurant extends SharedEntity {
   @OneToMany(type => Dish, (dish: Dish) => dish.restaurant)
   @Field(type => [Dish])
   menu: Dish[];
+
+  @OneToMany(type => Order, (order: Order) => order.restaurant)
+  @Field(type => [Order])
+  orders: Order[];
 }

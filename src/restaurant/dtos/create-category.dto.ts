@@ -5,7 +5,7 @@ import { Category } from '../entities/catergory.entitiy';
 @InputType()
 export class CreateCategoryInput extends PickType(
   Category,
-  ['name'],
+  ['name', 'imageUrl'],
   InputType,
 ) {}
 

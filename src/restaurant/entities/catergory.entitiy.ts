@@ -14,6 +14,10 @@ export class Category extends SharedEntity {
   @Field(type => String)
   slug: string;
 
+  @Column({ nullable: true })
+  @Field(type => String, { nullable: true })
+  imageUrl: string;
+
   @OneToMany(
     type => Restaurant,
     (restaurant: Restaurant) => restaurant.category,

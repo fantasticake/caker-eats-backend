@@ -1,7 +1,8 @@
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Order } from 'src/order/entities/order.entity';
 import { Restaurant } from 'src/restaurant/entities/restaurant.entity';
 import { SharedEntity } from 'src/shared/shared.entity';
-import { Column, Entity, OneToOne, RelationId } from 'typeorm';
+import { Column, Entity, OneToMany, OneToOne, RelationId } from 'typeorm';
 
 export enum UserRole {
   Customer = 'Customer',
@@ -39,4 +40,12 @@ export class User extends SharedEntity {
 
   @RelationId((user: User) => user.restaurant)
   restaurantId?: number;
+
+  @OneToMany(type => Order, (order: Order) => order.customer)
+  @Field(type => [Order])
+  orders: Order[];
+
+  @OneToMany(type => Order, (order: Order) => order.driver)
+  @Field(type => [Order])
+  driverOrders: Order[];
 }

@@ -55,7 +55,7 @@ export class RestaurantService {
         return { ok: false, error: 'Category does not exists.' };
       await this.restaurantsRepository.save(
         this.restaurantsRepository.create({
-          name: input.name,
+          ...input,
           owner: loggedInUser,
           category: existingCategory,
         }),
@@ -131,9 +131,7 @@ export class RestaurantService {
       }
       await this.restaurantsRepository.save({
         id: loggedInUser.restaurantId,
-        ...(input.name && {
-          name: input.name,
-        }),
+        ...input,
         ...(input.categoryId && {
           category: { id: input.categoryId },
         }),

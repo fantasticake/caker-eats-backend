@@ -24,6 +24,10 @@ export class Dish extends SharedEntity {
   @Field(type => String, { nullable: true })
   description?: string;
 
+  @Column({ nullable: true })
+  @Field(type => String, { nullable: true })
+  imageUrl: string;
+
   @Column()
   @Field(type => Number)
   price: number;
