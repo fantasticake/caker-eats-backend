@@ -9,6 +9,7 @@ import {
   ManyToOne,
   OneToMany,
   OneToOne,
+  RelationId,
 } from 'typeorm';
 import { Category } from './catergory.entitiy';
 import { Dish } from './dish.entity';
@@ -28,6 +29,9 @@ export class Restaurant extends SharedEntity {
   @JoinColumn()
   @Field(type => User)
   owner: User;
+
+  @RelationId((restaurant: Restaurant) => restaurant.owner)
+  ownerId: number;
 
   @ManyToOne(type => Category, (category: Category) => category.restaurants)
   @Field(type => Category)

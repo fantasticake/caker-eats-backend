@@ -31,6 +31,7 @@
     "apollo-server-express": "^3.10.0",
     "bcrypt": "^5.0.1",
     "graphql": "^16.5.0",
+    "graphql-subscriptions": "^2.0.0",
     "joi": "^17.6.0",
     "jsonwebtoken": "^8.5.1",
     "mailgun-js": "^0.22.0",
@@ -68,8 +69,8 @@
     "typescript": "^4.3.5"
   },
   "jest": {
-    "moduleNameMapper":{
-      "^src/(.*)$":"<rootDir>/$1"
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
     },
     "moduleFileExtensions": [
       "js",

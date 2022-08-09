@@ -7,7 +7,7 @@ import {
 import { Restaurant } from 'src/restaurant/entities/restaurant.entity';
 import { SharedEntity } from 'src/shared/shared.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, RelationId } from 'typeorm';
 
 @ObjectType()
 @InputType('OrderDishOptionInput', { isAbstract: true })
@@ -57,6 +57,9 @@ export class Order extends SharedEntity {
   @Field(type => User, { nullable: true })
   customer?: User;
 
+  @RelationId((order: Order) => order.customer)
+  customerId: number;
+
   @ManyToOne(
     type => Restaurant,
     (restaurant: Restaurant) => restaurant.orders,
@@ -71,6 +74,9 @@ export class Order extends SharedEntity {
   })
   @Field(type => User, { nullable: true })
   driver?: User;
+
+  @RelationId((order: Order) => order.driver)
+  driverId: number;
 
   @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.Pending })
   @Field(type => OrderStatus, { defaultValue: OrderStatus.Pending })

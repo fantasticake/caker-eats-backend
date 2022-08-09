@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PubSub } from 'graphql-subscriptions';
 import { Restaurant } from 'src/restaurant/entities/restaurant.entity';
+import { PUBSUB_TOKEN } from 'src/shared/shared.constants';
 import { User, UserRole } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
@@ -8,9 +10,15 @@ import {
   EditOrderStatusInput,
   EditOrderStatusOutput,
 } from './dtos/edit-order-status.dto';
+import { PickupOrderInput, PickupOrderOutput } from './dtos/pickup-order-dto';
 import { SeeOrderInput, SeeOrderOutput } from './dtos/see-order.dto';
 import { SeeOrdersOutput } from './dtos/see-orders.dto';
 import { Order, OrderStatus } from './entities/order.entity';
+import {
+  ORDER_COOKED_TRIGGER,
+  ORDER_CREATED_TRIGGER,
+  ORDER_STATUS_CHANGED_TRIGGER,
+} from './order.constants';
 
 @Injectable()
 export class OrderService {
@@ -18,6 +26,7 @@ export class OrderService {
     @InjectRepository(Order) private readonly ordersRepo: Repository<Order>,
     @InjectRepository(Restaurant)
     private readonly restaurantsRepo: Repository<Restaurant>,
+    @Inject(PUBSUB_TOKEN) private readonly pubSub: PubSub,
   ) {}
 
   async createOrder(
@@ -47,13 +56,14 @@ export class OrderService {
         }
       }
 
-      await this.ordersRepo.save(
+      const order = await this.ordersRepo.save(
         this.ordersRepo.create({
           ...input,
           restaurant: existingRestaurant,
           customer: loggedInUser,
         }),
       );
+      this.pubSub.publish(ORDER_CREATED_TRIGGER, { orderCreated: order });
       return { ok: true };
     } catch {
       return { ok: false, error: 'Cannot create an order.' };
@@ -83,24 +93,13 @@ export class OrderService {
     }
   }
 
-  private async getExistingOrder(orderId: number, user: User): Promise<Order> {
-    let existingOrder: Order;
-    if (user.role == UserRole.Customer)
-      existingOrder = await this.ordersRepo.findOneBy({
-        id: orderId,
-        customer: { id: user.id },
-      });
-    else if (user.role == UserRole.Driver)
-      existingOrder = await this.ordersRepo.findOneBy({
-        id: orderId,
-        driver: { id: user.id },
-      });
+  private canAccessOrder(order: Order, user: User): boolean {
+    if (!order) return false;
+    if (user.role == UserRole.Customer) return order.customerId == user.id;
+    else if (user.role == UserRole.Driver) return order.driverId == user.id;
     else if (user.role == UserRole.Owner)
-      existingOrder = await this.ordersRepo.findOneBy({
-        id: orderId,
-        restaurant: { owner: { id: user.id } },
-      });
-    return existingOrder;
+      return order.restaurant.ownerId == user.id;
+    return false;
   }
 
   async seeOrder(
@@ -108,11 +107,17 @@ export class OrderService {
     loggedInUser: User,
   ): Promise<SeeOrderOutput> {
     try {
-      const existingOrder = await this.getExistingOrder(
-        input.orderId,
-        loggedInUser,
-      );
+      const existingOrder = await this.ordersRepo.findOne({
+        where: {
+          id: input.orderId,
+        },
+        relations: ['restaurant', 'driver', 'customer'],
+      });
       if (!existingOrder) return { ok: false, error: 'Order not found.' };
+
+      const canAccess = this.canAccessOrder(existingOrder, loggedInUser);
+      if (!canAccess) return { ok: false, error: 'Cannot access an order.' };
+
       return { ok: true, result: existingOrder };
     } catch {
       return { ok: false, error: 'Cannot see an order.' };
@@ -124,11 +129,16 @@ export class OrderService {
     loggedInUser: User,
   ): Promise<EditOrderStatusOutput> {
     try {
-      const existingOrder = await this.getExistingOrder(
-        input.orderId,
-        loggedInUser,
-      );
+      const existingOrder = await this.ordersRepo.findOne({
+        where: {
+          id: input.orderId,
+        },
+        relations: ['restaurant'],
+      });
       if (!existingOrder) return { ok: false, error: 'Order not found.' };
+
+      const canAccess = this.canAccessOrder(existingOrder, loggedInUser);
+      if (!canAccess) return { ok: false, error: 'Cannot access an order.' };
 
       let allowed: boolean = false;
       if (loggedInUser.role == UserRole.Driver) {
@@ -149,10 +159,39 @@ export class OrderService {
       if (!allowed)
         return { ok: false, error: 'Not allowed to edit order status.' };
 
-      await this.ordersRepo.save({ id: input.orderId, status: input.status });
+      existingOrder.status == input.status;
+      const newOrder = await this.ordersRepo.save(existingOrder);
+
+      this.pubSub.publish(ORDER_STATUS_CHANGED_TRIGGER, {
+        orderStatusChanged: newOrder,
+      });
+      if (input.status == OrderStatus.Cooked)
+        this.pubSub.publish(ORDER_COOKED_TRIGGER, {
+          orderCooked: newOrder,
+        });
       return { ok: true };
     } catch {
       return { ok: false, error: 'Cannot edit an order status.' };
+    }
+  }
+
+  async pickupOrder(
+    input: PickupOrderInput,
+    loggedInUser: User,
+  ): Promise<PickupOrderOutput> {
+    try {
+      const existingOrder = await this.ordersRepo.findOneBy({
+        id: input.orderId,
+      });
+      if (!existingOrder || existingOrder.driverId)
+        return { ok: false, error: 'Order not found.' };
+
+      existingOrder.driver = loggedInUser;
+      existingOrder.status = OrderStatus.PickedUp;
+      await this.ordersRepo.save(existingOrder);
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'Cannot pickup an order.' };
     }
   }
 }
