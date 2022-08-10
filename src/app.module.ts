@@ -18,6 +18,8 @@ import { OrderModule } from './order/order.module';
 import { Order } from './order/entities/order.entity';
 import { SharedModule } from './shared/shared.module';
 import { HEADER_TOKEN } from './jwt/jwt.constants';
+import { UploadModule } from './upload/upload.module';
+import { Promotion } from './user/entities/promotion.entity';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { HEADER_TOKEN } from './jwt/jwt.constants';
         JWT_KEY: Joi.string(),
         MAILGUN_API_KEY: Joi.string(),
         MAILGUN_DOMAIN: Joi.string(),
+        AWS_KEY_ID: Joi.string(),
+        AWS_SECRET_KEY: Joi.string(),
       }),
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -54,7 +58,15 @@ import { HEADER_TOKEN } from './jwt/jwt.constants';
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
-      entities: [User, Verification, Restaurant, Category, Dish, Order],
+      entities: [
+        User,
+        Verification,
+        Restaurant,
+        Category,
+        Dish,
+        Order,
+        Promotion,
+      ],
       synchronize: true,
       dropSchema: process.env.NODE_ENV == 'test',
     }),
@@ -65,6 +77,7 @@ import { HEADER_TOKEN } from './jwt/jwt.constants';
     RestaurantModule,
     OrderModule,
     SharedModule,
+    UploadModule,
   ],
   controllers: [],
   providers: [],

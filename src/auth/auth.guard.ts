@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
+import { HEADER_TOKEN } from 'src/jwt/jwt.constants';
 import { JwtService } from 'src/jwt/jwt.service';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
@@ -23,7 +24,8 @@ export class AuthGuard implements CanActivate {
       if (!allowedRoles) return true;
 
       const gqlContext = GqlExecutionContext.create(context).getContext();
-      const token: string = gqlContext.token;
+      const token: string =
+        gqlContext.token || gqlContext.req.headers[HEADER_TOKEN];
       if (!token) return false;
 
       const decoded = this.jwtService.verify(token);
@@ -39,6 +41,8 @@ export class AuthGuard implements CanActivate {
       )
         return true;
       return false;
-    } catch (error) {}
+    } catch {
+      return false;
+    }
   }
 }

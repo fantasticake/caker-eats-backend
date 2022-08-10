@@ -2,7 +2,6 @@
 
 Clone Uber Eats backend with Nest.js and GraphQL
 
-image module
-payment module
+promotion task scheduling
 unit testing
 e2e testing

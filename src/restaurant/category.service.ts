@@ -75,6 +75,7 @@ export class CategoryService {
         where: { category: { slug: input.slug } },
         skip: (input.page - 1) * PAGINATION_TAKE,
         take: PAGINATION_TAKE,
+        order: { isPromoted: 'DESC' },
       });
     return {
       ok: true,

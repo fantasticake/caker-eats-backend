@@ -1,5 +1,6 @@
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Order } from 'src/order/entities/order.entity';
+import { Promotion } from 'src/user/entities/promotion.entity';
 import { Restaurant } from 'src/restaurant/entities/restaurant.entity';
 import { SharedEntity } from 'src/shared/shared.entity';
 import { Column, Entity, OneToMany, OneToOne, RelationId } from 'typeorm';
@@ -48,4 +49,8 @@ export class User extends SharedEntity {
   @OneToMany(type => Order, (order: Order) => order.driver)
   @Field(type => [Order])
   driverOrders: Order[];
+
+  @OneToMany(type => Promotion, (promotion: Promotion) => promotion.owner)
+  @Field(type => [Promotion])
+  promotions: Promotion[];
 }

@@ -74,6 +74,7 @@ export class RestaurantService {
         await this.restaurantsRepository.findAndCount({
           skip: (input.page - 1) * PAGINATION_TAKE,
           take: PAGINATION_TAKE,
+          order: { isPromoted: 'DESC' },
         });
       return {
         ok: true,
@@ -170,6 +171,7 @@ export class RestaurantService {
           },
           skip: (input.page - 1) * PAGINATION_TAKE,
           take: PAGINATION_TAKE,
+          order: { isPromoted: 'DESC' },
         });
       return {
         ok: true,

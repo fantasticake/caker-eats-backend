@@ -44,4 +44,12 @@ export class Restaurant extends SharedEntity {
   @OneToMany(type => Order, (order: Order) => order.restaurant)
   @Field(type => [Order])
   orders: Order[];
+
+  @Column({ default: false })
+  @Field(type => Boolean)
+  isPromoted: boolean;
+
+  @Column({ type: 'date', nullable: true })
+  @Field(type => Date, { nullable: true })
+  promotionExpireDate?: Date;
 }
