@@ -20,6 +20,7 @@ import { SharedModule } from './shared/shared.module';
 import { HEADER_TOKEN } from './jwt/jwt.constants';
 import { UploadModule } from './upload/upload.module';
 import { Promotion } from './user/entities/promotion.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { Promotion } from './user/entities/promotion.entity';
       synchronize: true,
       dropSchema: process.env.NODE_ENV == 'test',
     }),
+    ScheduleModule.forRoot(),
     UserModule,
     JwtModule,
     AuthModule,

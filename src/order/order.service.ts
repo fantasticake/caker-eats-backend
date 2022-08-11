@@ -10,7 +10,7 @@ import {
   EditOrderStatusInput,
   EditOrderStatusOutput,
 } from './dtos/edit-order-status.dto';
-import { PickupOrderInput, PickupOrderOutput } from './dtos/pickup-order-dto';
+import { PickupOrderInput, PickupOrderOutput } from './dtos/pickup-order.dto';
 import { SeeOrderInput, SeeOrderOutput } from './dtos/see-order.dto';
 import { SeeOrdersOutput } from './dtos/see-orders.dto';
 import { Order, OrderStatus } from './entities/order.entity';

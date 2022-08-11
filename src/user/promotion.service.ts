@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LoggedInUser } from 'src/auth/decorators/logged-in-user.decorator';
 import { Restaurant } from 'src/restaurant/entities/restaurant.entity';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 import {
   CreatePromotionInput,
   CreatePromotionOutput,
@@ -62,6 +62,21 @@ export class PromotionService {
       return { ok: true, result: promotions };
     } catch {
       return { ok: false, error: 'Cannot see promotions.' };
+    }
+  }
+
+  @Cron('0 0 0 * * *')
+  async checkPromotions() {
+    try {
+      const expiredRestaurants = await this.restaurantsRepo.find({
+        where: { isPromoted: true, promotionExpireDate: LessThan(new Date()) },
+      });
+      expiredRestaurants.forEach(async restaurant => {
+        restaurant.isPromoted = false;
+        await this.restaurantsRepo.save(restaurant);
+      });
+    } catch (error) {
+      console.log(error);
     }
   }
 }

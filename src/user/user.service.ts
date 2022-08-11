@@ -29,11 +29,12 @@ export class UserService {
 
   async createUser(input: CreateUserInput): Promise<CreateUserOutput> {
     try {
+      if (input.role == UserRole.Admin)
+        return { ok: false, error: 'Cannot create with admin role.' };
+
       const existingUser = await this.usersRepository.findOneBy({
         email: input.email,
       });
-      if (input.role == UserRole.Admin)
-        return { ok: false, error: 'Cannot create with admin role.' };
       if (existingUser) return { ok: false, error: 'Email already exists.' };
 
       const hashed = await bcrypt.hash(input.password, HASH_ROUNDS);
@@ -51,8 +52,7 @@ export class UserService {
         verification.code,
       );
       return { ok: true };
-    } catch (error) {
-      console.log(error);
+    } catch {
       return { ok: false, error: 'Cannot create a user.' };
     }
   }
