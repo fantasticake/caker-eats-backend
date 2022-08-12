@@ -7,7 +7,7 @@ import { JwtService } from 'src/jwt/jwt.service';
 import { MailService } from 'src/mail/mail.service';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { HASHED_PASSWORD, customer } from 'src/test/test.data';
+import { HASHED_PASSWORD, customerTestData } from 'src/test/test.data';
 
 const PASSWORD = 'password';
 const TOKEN = 'token';
@@ -78,19 +78,21 @@ describe('UserService', () => {
 
   describe('findById', () => {
     it('should return a user', async () => {
-      usersRepository.findOneBy.mockResolvedValueOnce(customer);
-      const result = await userService.findById(customer.id);
+      usersRepository.findOneBy.mockResolvedValueOnce(customerTestData);
+      const result = await userService.findById(customerTestData.id);
       expect(usersRepository.findOneBy).toBeCalledTimes(1);
-      expect(usersRepository.findOneBy).toBeCalledWith({ id: customer.id });
-      expect(result).toEqual(customer);
+      expect(usersRepository.findOneBy).toBeCalledWith({
+        id: customerTestData.id,
+      });
+      expect(result).toEqual(customerTestData);
     });
   });
 
   describe('createUser', () => {
     const input = {
-      email: customer.email,
+      email: customerTestData.email,
       password: PASSWORD,
-      role: customer.role,
+      role: customerTestData.role,
     };
 
     it('should return an error if role is admin', async () => {
@@ -105,7 +107,7 @@ describe('UserService', () => {
     });
 
     it('should return an error if email exists', async () => {
-      usersRepository.findOneBy.mockResolvedValueOnce(customer);
+      usersRepository.findOneBy.mockResolvedValueOnce(customerTestData);
       const result = await userService.createUser(input);
       expect(usersRepository.findOneBy).toBeCalledTimes(1);
       expect(usersRepository.findOneBy).toBeCalledWith({ email: input.email });
@@ -114,7 +116,7 @@ describe('UserService', () => {
 
     it('should create a user', async () => {
       usersRepository.findOneBy.mockResolvedValueOnce(null);
-      usersRepository.create.mockReturnValueOnce(customer);
+      usersRepository.create.mockReturnValueOnce(customerTestData);
       verificationsRepository.create.mockReturnValueOnce(verificationData);
       verificationsRepository.save.mockResolvedValueOnce(verificationData);
       const result = await userService.createUser(input);
@@ -126,7 +128,7 @@ describe('UserService', () => {
         password: HASHED_PASSWORD,
       });
       expect(usersRepository.save).toBeCalledTimes(1);
-      expect(usersRepository.save).toBeCalledWith(customer);
+      expect(usersRepository.save).toBeCalledWith(customerTestData);
       expect(verificationsRepository.create).toBeCalledTimes(1);
       expect(verificationsRepository.create).toBeCalledWith({
         code: expect.any(String),
@@ -151,7 +153,7 @@ describe('UserService', () => {
 
   describe('login', () => {
     const input = {
-      email: customer.email,
+      email: customerTestData.email,
       password: PASSWORD,
     };
     it('should return an error if user not found', async () => {
@@ -163,21 +165,24 @@ describe('UserService', () => {
     });
 
     it('should return an error if password is invalid', async () => {
-      usersRepository.findOneBy.mockResolvedValueOnce(customer);
+      usersRepository.findOneBy.mockResolvedValueOnce(customerTestData);
       (bcrypt.compare as jest.Mock).mockResolvedValueOnce(false);
       const result = await userService.login(input);
       expect(bcrypt.compare).toBeCalledTimes(1);
-      expect(bcrypt.compare).toBeCalledWith(input.password, customer.password);
+      expect(bcrypt.compare).toBeCalledWith(
+        input.password,
+        customerTestData.password,
+      );
       expect(result).toEqual({ ok: false, error: 'Invalid password.' });
     });
 
     it('should return a token', async () => {
-      usersRepository.findOneBy.mockResolvedValueOnce(customer);
+      usersRepository.findOneBy.mockResolvedValueOnce(customerTestData);
       (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true);
       jwtService.sign.mockReturnValueOnce(TOKEN);
       const result = await userService.login(input);
       expect(jwtService.sign).toBeCalledTimes(1);
-      expect(jwtService.sign).toBeCalledWith({ userId: customer.id });
+      expect(jwtService.sign).toBeCalledWith({ userId: customerTestData.id });
       expect(result).toEqual({ ok: true, token: TOKEN });
     });
 
@@ -194,10 +199,10 @@ describe('UserService', () => {
       password: 'new.password',
     };
     it('should return an error if email exists', async () => {
-      usersRepository.findOneBy.mockResolvedValueOnce(customer);
+      usersRepository.findOneBy.mockResolvedValueOnce(customerTestData);
       const result = await userService.editUser(
         { email: input.email },
-        customer,
+        customerTestData,
       );
       expect(usersRepository.findOneBy).toBeCalledTimes(1);
       expect(usersRepository.findOneBy).toBeCalledWith({ email: input.email });
@@ -208,18 +213,18 @@ describe('UserService', () => {
       usersRepository.findOneBy.mockResolvedValueOnce(null);
       verificationsRepository.create.mockReturnValueOnce(verificationData);
       verificationsRepository.save.mockResolvedValueOnce(verificationData);
-      const result = await userService.editUser(input, customer);
+      const result = await userService.editUser(input, customerTestData);
       expect(bcrypt.hash).toBeCalledTimes(1);
       expect(bcrypt.hash).toBeCalledWith(input.password, HASH_ROUNDS);
       expect(usersRepository.save).toBeCalledTimes(1);
       expect(usersRepository.save).toBeCalledWith({
-        id: customer.id,
+        id: customerTestData.id,
         email: input.email,
         password: HASHED_PASSWORD,
       });
       expect(verificationsRepository.delete).toBeCalledTimes(1);
       expect(verificationsRepository.delete).toBeCalledWith({
-        email: customer.email,
+        email: customerTestData.email,
       });
       expect(verificationsRepository.create).toBeCalledTimes(1);
       expect(verificationsRepository.create).toBeCalledWith({
@@ -240,7 +245,7 @@ describe('UserService', () => {
       usersRepository.findOneBy.mockRejectedValueOnce(new Error());
       const result = await userService.editUser(
         { email: input.email },
-        customer,
+        customerTestData,
       );
       expect(result).toEqual({ ok: false, error: 'Cannot edit user.' });
     });
@@ -248,15 +253,17 @@ describe('UserService', () => {
 
   describe('deleteUser', () => {
     it('should delete a user', async () => {
-      const result = await userService.deleteUser(customer);
+      const result = await userService.deleteUser(customerTestData);
       expect(usersRepository.delete).toBeCalledTimes(1);
-      expect(usersRepository.delete).toBeCalledWith({ id: customer.id });
+      expect(usersRepository.delete).toBeCalledWith({
+        id: customerTestData.id,
+      });
       expect(result).toEqual({ ok: true });
     });
 
     it('should return an error if it fails', async () => {
       usersRepository.delete.mockRejectedValueOnce(new Error());
-      const result = await userService.deleteUser(customer);
+      const result = await userService.deleteUser(customerTestData);
       expect(result).toEqual({ ok: false, error: 'Cannot delete user.' });
     });
   });
@@ -267,21 +274,21 @@ describe('UserService', () => {
     };
     it('should return an error if verification is invalid', async () => {
       verificationsRepository.findOneBy.mockResolvedValueOnce(null);
-      const result = await userService.verifyEmail(input, customer);
+      const result = await userService.verifyEmail(input, customerTestData);
       expect(verificationsRepository.findOneBy).toBeCalledTimes(1);
       expect(verificationsRepository.findOneBy).toBeCalledWith({
         code: input.code,
-        email: customer.email,
+        email: customerTestData.email,
       });
       expect(result).toEqual({ ok: false, error: 'Invalid verification code' });
     });
 
     it('should verify an email', async () => {
       verificationsRepository.findOneBy.mockResolvedValueOnce(verificationData);
-      const result = await userService.verifyEmail(input, customer);
-      expect(customer.verified).toBe(true);
+      const result = await userService.verifyEmail(input, customerTestData);
+      expect(customerTestData.verified).toBe(true);
       expect(usersRepository.save).toBeCalledTimes(1);
-      expect(usersRepository.save).toBeCalledWith(customer);
+      expect(usersRepository.save).toBeCalledWith(customerTestData);
       expect(verificationsRepository.delete).toBeCalledTimes(1);
       expect(verificationsRepository.delete).toBeCalledWith({
         code: input.code,
@@ -291,7 +298,7 @@ describe('UserService', () => {
 
     it('should return an error if it fails', async () => {
       verificationsRepository.findOneBy.mockRejectedValueOnce(new Error());
-      const result = await userService.verifyEmail(input, customer);
+      const result = await userService.verifyEmail(input, customerTestData);
       expect(result).toEqual({ ok: false, error: 'Cannot verify email.' });
     });
   });

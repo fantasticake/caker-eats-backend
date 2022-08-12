@@ -6,14 +6,11 @@ import { CreateDishInput, CreateDishOutput } from './dtos/create-dish.dto';
 import { DeleteDishInput, DeleteDishOutput } from './dtos/delete-dish.dto';
 import { EditDishInput, EditDishOutput } from './dtos/edit-dish.dto';
 import { Dish } from './entities/dish.entity';
-import { Restaurant } from './entities/restaurant.entity';
 
 @Injectable()
 export class DishService {
   constructor(
     @InjectRepository(Dish) private readonly dishesRepository: Repository<Dish>,
-    @InjectRepository(Restaurant)
-    private readonly restaurantsRepository: Repository<Restaurant>,
   ) {}
 
   async createDish(

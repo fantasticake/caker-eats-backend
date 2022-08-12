@@ -1,8 +1,12 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Restaurant } from 'src/restaurant/entities/restaurant.entity';
-import { customer } from 'src/test/test.data';
-import { Repository } from 'typeorm';
+import {
+  ownerTestData,
+  promotionTestData,
+  restaurantTestData,
+} from 'src/test/test.data';
+import { LessThan, Repository } from 'typeorm';
 import { CreatePromotionInput } from './dtos/create-promotion.dto';
 import { Promotion } from './entities/promotion.entity';
 import { PromotionService } from './promotion.service';
@@ -20,7 +24,7 @@ const getMockedRepo = () => {
 describe('PromotionService', () => {
   let promotionService: PromotionService;
   let promotionsRepo: Record<keyof Repository<Promotion>, jest.Mock>;
-  let restaurantRepo: Record<keyof Repository<Restaurant>, jest.Mock>;
+  let restaurantsRepo: Record<keyof Repository<Restaurant>, jest.Mock>;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -32,7 +36,7 @@ describe('PromotionService', () => {
     }).compile();
     promotionService = module.get(PromotionService);
     promotionsRepo = module.get(getRepositoryToken(Promotion));
-    restaurantRepo = module.get(getRepositoryToken(Restaurant));
+    restaurantsRepo = module.get(getRepositoryToken(Restaurant));
   });
 
   it('should be defined', () => {
@@ -41,28 +45,95 @@ describe('PromotionService', () => {
 
   describe('createPromotion', () => {
     const input: CreatePromotionInput = {
-      transactionId: 123,
+      transactionId: promotionTestData.transactionId,
     };
     it('should return an error if restaurant does not exist', async () => {
-      restaurantRepo.findOneBy.mockResolvedValueOnce(null);
-      const result = await promotionService.createPromotion(input, customer);
-      expect(restaurantRepo.findOneBy).toBeCalledTimes(1);
-      expect(restaurantRepo.findOneBy).toBeCalledWith({
-        id: customer.restaurantId,
+      restaurantsRepo.findOneBy.mockResolvedValueOnce(null);
+      const result = await promotionService.createPromotion(
+        input,
+        ownerTestData,
+      );
+      expect(restaurantsRepo.findOneBy).toBeCalledTimes(1);
+      expect(restaurantsRepo.findOneBy).toBeCalledWith({
+        id: ownerTestData.restaurantId,
       });
       expect(result).toEqual({ ok: false, error: 'Restaurant not found.' });
     });
 
-    it.todo('should create a promotion & promote a restaurant');
-    it.todo('should return an error if it fails');
+    it('should create a promotion & promote a restaurant', async () => {
+      restaurantsRepo.findOneBy.mockResolvedValueOnce(restaurantTestData);
+      promotionsRepo.create.mockReturnValueOnce(promotionTestData);
+      const result = await promotionService.createPromotion(
+        input,
+        ownerTestData,
+      );
+      expect(promotionsRepo.create).toBeCalledTimes(1);
+      expect(promotionsRepo.create).toBeCalledWith({
+        ...input,
+        owner: { id: ownerTestData.id },
+      });
+      expect(promotionsRepo.save).toBeCalledTimes(1);
+      expect(promotionsRepo.save).toBeCalledWith(promotionTestData);
+      expect(restaurantsRepo.save).toBeCalledTimes(1);
+      expect(restaurantsRepo.save).toBeCalledWith({
+        id: ownerTestData.restaurantId,
+        isPromoted: true,
+        promotionExpireDate: expect.any(Date),
+      });
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('should return an error if it fails', async () => {
+      restaurantsRepo.findOneBy.mockRejectedValueOnce(new Error());
+      const result = await promotionService.createPromotion(
+        input,
+        ownerTestData,
+      );
+      expect(result).toEqual({
+        ok: false,
+        error: 'Cannot create a promotion.',
+      });
+    });
   });
 
   describe('seePromotions', () => {
-    it.todo('should return a promotions');
-    it.todo('should return an error if it fails');
+    it('should return a promotions', async () => {
+      promotionsRepo.findBy.mockResolvedValueOnce([promotionTestData]);
+      const result = await promotionService.seePromotions(ownerTestData);
+      expect(promotionsRepo.findBy).toBeCalledTimes(1);
+      expect(promotionsRepo.findBy).toBeCalledWith({
+        owner: { id: ownerTestData.id },
+      });
+      expect(result).toEqual({ ok: true, result: [promotionTestData] });
+    });
+
+    it('should return an error if it fails', async () => {
+      promotionsRepo.findBy.mockRejectedValueOnce(new Error());
+      const result = await promotionService.seePromotions(ownerTestData);
+      expect(result).toEqual({ ok: false, error: 'Cannot see promotions.' });
+    });
   });
 
   describe('checkPromotions', () => {
-    it.todo('should check promotions');
+    const expiredRestaurant = {
+      ...restaurantTestData,
+      isPromoted: true,
+    };
+    it('should check promotions', async () => {
+      restaurantsRepo.find.mockResolvedValueOnce([expiredRestaurant]);
+      await promotionService.checkPromotions();
+      expect(restaurantsRepo.find).toBeCalledTimes(1);
+      expect(restaurantsRepo.find).toBeCalledWith({
+        where: {
+          isPromoted: true,
+          promotionExpireDate: LessThan(expect.any(Date)),
+        },
+      });
+      expect(restaurantsRepo.save).toBeCalledTimes(1);
+      expect(restaurantsRepo.save).toBeCalledWith({
+        ...expiredRestaurant,
+        isPromoted: false,
+      });
+    });
   });
 });
