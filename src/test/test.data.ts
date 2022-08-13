@@ -35,8 +35,8 @@ export const ownerTestData: User = {
 
 export const categoryTestData: Category = {
   id: 5,
-  name: 'test.category',
-  slug: 'test.category',
+  name: 'test category',
+  slug: 'test-category',
   imageUrl: 'category.image.url',
   restaurants: [],
   createdAt: new Date(),

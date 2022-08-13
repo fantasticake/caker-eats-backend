@@ -19,9 +19,9 @@ import { Restaurant } from './entities/restaurant.entity';
 export class CategoryService {
   constructor(
     @InjectRepository(Category)
-    private readonly categoriesRepository: Repository<Category>,
+    private readonly categoriesRepo: Repository<Category>,
     @InjectRepository(Restaurant)
-    private readonly restaurantsRepository: Repository<Restaurant>,
+    private readonly restaurantsRepo: Repository<Restaurant>,
   ) {}
 
   async createCategory(
@@ -29,13 +29,13 @@ export class CategoryService {
   ): Promise<CreateCategoryOutput> {
     try {
       const slug = input.name.trim().toLowerCase().replaceAll(/\s+/g, '-');
-      const existingCategory = await this.categoriesRepository.findOneBy({
+      const existingCategory = await this.categoriesRepo.findOneBy({
         slug,
       });
       if (existingCategory)
         return { ok: false, error: 'Category slug already exists.' };
-      await this.categoriesRepository.save(
-        this.categoriesRepository.create({ ...input, slug }),
+      await this.categoriesRepo.save(
+        this.categoriesRepo.create({ ...input, slug }),
       );
       return { ok: true };
     } catch {
@@ -47,7 +47,7 @@ export class CategoryService {
     input: DeleteCategoryInput,
   ): Promise<DeleteCategoryOutput> {
     try {
-      await this.categoriesRepository.delete({ slug: input.slug });
+      await this.categoriesRepo.delete({ slug: input.slug });
       return { ok: true };
     } catch {
       return { ok: false, error: 'Cannot delete category.' };
@@ -56,7 +56,7 @@ export class CategoryService {
 
   async seeCategories(): Promise<SeeCategoriesOutput> {
     try {
-      const categories = await this.categoriesRepository.find();
+      const categories = await this.categoriesRepo.find();
       return { ok: true, result: categories };
     } catch {
       return { ok: false, error: 'Cannot see categories.' };
@@ -64,23 +64,27 @@ export class CategoryService {
   }
 
   async seeCategory(input: SeeCategoryInput): Promise<SeeCategoryOutput> {
-    const category = await this.categoriesRepository.findOneBy({
-      slug: input.slug,
-    });
-    if (!category) {
-      return { ok: false, error: 'Category not found.' };
-    }
-    const [restaurants, totalRestaurants] =
-      await this.restaurantsRepository.findAndCount({
-        where: { category: { slug: input.slug } },
-        skip: (input.page - 1) * PAGINATION_TAKE,
-        take: PAGINATION_TAKE,
-        order: { isPromoted: 'DESC' },
+    try {
+      const category = await this.categoriesRepo.findOneBy({
+        slug: input.slug,
       });
-    return {
-      ok: true,
-      result: { ...category, restaurants },
-      totalPages: Math.ceil(totalRestaurants / PAGINATION_TAKE),
-    };
+      if (!category) {
+        return { ok: false, error: 'Category not found.' };
+      }
+      const [restaurants, totalRestaurants] =
+        await this.restaurantsRepo.findAndCount({
+          where: { category: { slug: input.slug } },
+          skip: (input.page - 1) * PAGINATION_TAKE,
+          take: PAGINATION_TAKE,
+          order: { isPromoted: 'DESC' },
+        });
+      return {
+        ok: true,
+        result: { ...category, restaurants },
+        totalPages: Math.ceil(totalRestaurants / PAGINATION_TAKE),
+      };
+    } catch {
+      return { ok: false, error: 'Cannot see category.' };
+    }
   }
 }

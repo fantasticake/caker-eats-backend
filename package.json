@@ -83,7 +83,7 @@
       "ts"
     ],
     "rootDir": "src",
-    "testRegex": "dish.*\\.spec\\.ts$",
+    "testRegex": "order.*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

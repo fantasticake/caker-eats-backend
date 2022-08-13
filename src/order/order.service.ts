@@ -88,7 +88,6 @@ export class OrderService {
       }
       return { ok: true, result };
     } catch (error) {
-      console.log(error);
       return { ok: false, error: 'Cannot see orders.' };
     }
   }

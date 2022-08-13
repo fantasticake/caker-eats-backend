@@ -31,10 +31,11 @@ import { Restaurant } from './entities/restaurant.entity';
 export class RestaurantService {
   constructor(
     @InjectRepository(Restaurant)
-    private readonly restaurantsRepository: Repository<Restaurant>,
+    private readonly restaurantsRepo: Repository<Restaurant>,
     @InjectRepository(Category)
-    private readonly categoriesRepository: Repository<Category>,
+    private readonly categoriesRepo: Repository<Category>,
   ) {}
+
   async createRestaurant(
     input: CreateRestaurantInput,
     loggedInUser: User,
@@ -43,18 +44,21 @@ export class RestaurantService {
       if (loggedInUser.restaurantId) {
         return { ok: false, error: 'Restaurant already exists.' };
       }
-      const existingRestaurant = await this.restaurantsRepository.findOneBy({
+
+      const existingRestaurant = await this.restaurantsRepo.findOneBy({
         name: input.name,
       });
       if (existingRestaurant)
         return { ok: false, error: 'Restaurant name already exists.' };
-      const existingCategory = await this.categoriesRepository.findOneBy({
+
+      const existingCategory = await this.categoriesRepo.findOneBy({
         id: input.categoryId,
       });
       if (!existingCategory)
         return { ok: false, error: 'Category does not exists.' };
-      await this.restaurantsRepository.save(
-        this.restaurantsRepository.create({
+
+      await this.restaurantsRepo.save(
+        this.restaurantsRepo.create({
           ...input,
           owner: loggedInUser,
           category: existingCategory,
@@ -71,7 +75,7 @@ export class RestaurantService {
   ): Promise<SeeRestaurantsOutput> {
     try {
       const [restaurants, totalRestaurants] =
-        await this.restaurantsRepository.findAndCount({
+        await this.restaurantsRepo.findAndCount({
           skip: (input.page - 1) * PAGINATION_TAKE,
           take: PAGINATION_TAKE,
           order: { isPromoted: 'DESC' },
@@ -88,7 +92,7 @@ export class RestaurantService {
 
   async seeRestaurant(input: SeeRestaurantInput): Promise<SeeRestaurantOutput> {
     try {
-      const restaurant = await this.restaurantsRepository.findOne({
+      const restaurant = await this.restaurantsRepo.findOne({
         where: {
           id: input.restaurantId,
         },
@@ -114,7 +118,7 @@ export class RestaurantService {
         return { ok: false, error: 'Restaurant not exists.' };
       }
       if (input.name) {
-        const existingRestaurant = await this.restaurantsRepository.findOneBy({
+        const existingRestaurant = await this.restaurantsRepo.findOneBy({
           name: input.name,
         });
         if (existingRestaurant)
@@ -124,13 +128,13 @@ export class RestaurantService {
           };
       }
       if (input.categoryId) {
-        const existingCategory = await this.categoriesRepository.findOneBy({
-          id: input.id,
+        const existingCategory = await this.categoriesRepo.findOneBy({
+          id: input.categoryId,
         });
         if (!existingCategory)
           return { ok: false, error: 'Category not found.' };
       }
-      await this.restaurantsRepository.save({
+      await this.restaurantsRepo.save({
         id: loggedInUser.restaurantId,
         ...input,
         ...(input.categoryId && {
@@ -150,7 +154,7 @@ export class RestaurantService {
           ok: false,
           error: 'Restaurant does not exist.',
         };
-      await this.restaurantsRepository.delete({
+      await this.restaurantsRepo.delete({
         id: loggedInUser.restaurantId,
       });
       return { ok: true };
@@ -165,7 +169,7 @@ export class RestaurantService {
     try {
       if (!input.key) return { ok: false, error: 'Key must me provided' };
       const [restaurants, totalRestaurants] =
-        await this.restaurantsRepository.findAndCount({
+        await this.restaurantsRepo.findAndCount({
           where: {
             name: ILike(`%${input.key}%`),
           },
