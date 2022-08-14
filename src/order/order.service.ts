@@ -92,8 +92,7 @@ export class OrderService {
     }
   }
 
-  private canAccessOrder(order: Order, user: User): boolean {
-    if (!order) return false;
+  canAccessOrder(order: Order, user: User): boolean {
     if (user.role == UserRole.Customer) return order.customerId == user.id;
     else if (user.role == UserRole.Driver) return order.driverId == user.id;
     else if (user.role == UserRole.Owner)
@@ -158,7 +157,7 @@ export class OrderService {
       if (!allowed)
         return { ok: false, error: 'Not allowed to edit order status.' };
 
-      existingOrder.status == input.status;
+      existingOrder.status = input.status;
       const newOrder = await this.ordersRepo.save(existingOrder);
 
       this.pubSub.publish(ORDER_STATUS_CHANGED_TRIGGER, {

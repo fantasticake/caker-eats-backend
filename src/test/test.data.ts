@@ -1,3 +1,4 @@
+import { Order, OrderStatus } from 'src/order/entities/order.entity';
 import { Category } from 'src/restaurant/entities/catergory.entitiy';
 import { Dish } from 'src/restaurant/entities/dish.entity';
 import { Restaurant } from 'src/restaurant/entities/restaurant.entity';
@@ -20,11 +21,24 @@ export const customerTestData: User = {
 };
 
 export const ownerTestData: User = {
-  id: 1,
+  id: 2,
   email: 'test@email.com',
   password: HASHED_PASSWORD,
   role: UserRole.Owner,
   restaurantId: 10,
+  verified: false,
+  orders: [],
+  driverOrders: [],
+  promotions: [],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
+export const driverTestData: User = {
+  id: 3,
+  email: 'test@email.com',
+  password: HASHED_PASSWORD,
+  role: UserRole.Driver,
   verified: false,
   orders: [],
   driverOrders: [],
@@ -56,11 +70,12 @@ export const restaurantTestData: Restaurant = {
   updatedAt: new Date(),
 };
 
-export const dishTestData: Dish = {
+export const dishTestData = {
   id: 15,
-  name: 'test.dish',
+  name: 'test dish',
   price: 10,
   restaurant: restaurantTestData,
+  options: [{ name: 'test dish option', extra: 1 }],
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -68,6 +83,24 @@ export const dishTestData: Dish = {
 export const promotionTestData: Promotion = {
   id: 20,
   transactionId: 30,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
+export const orderTestData: Order = {
+  id: 30,
+  dishes: [
+    {
+      dishId: dishTestData.id,
+      count: 1,
+      options: [{ name: dishTestData.options[0].name }],
+    },
+  ],
+  restaurant: restaurantTestData,
+  location: 'test location',
+  customerId: customerTestData.id,
+  driverId: null,
+  status: OrderStatus.Pending,
   createdAt: new Date(),
   updatedAt: new Date(),
 };

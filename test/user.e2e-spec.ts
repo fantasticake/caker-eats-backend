@@ -2,23 +2,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
-import { UserRole } from 'src/user/entities/user.entity';
 import { HEADER_TOKEN } from 'src/jwt/jwt.constants';
 import { Repository } from 'typeorm';
 import { Verification } from 'src/user/entities/verification.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { GRAPHQL_ENDPOINT } from './constants-e2e';
+import { adminE2E, customerE2E } from './data-e2e';
 
 jest.mock('mailgun-js', () => {
   return () => ({ messages: () => ({ send: () => {} }) });
 });
-
-const GRAPHQL_ENDPOINT = '/graphql';
-
-const userData = {
-  email: 'test@email.com',
-  password: '1234',
-  role: UserRole.Customer,
-};
 
 let token: string;
 
@@ -40,6 +33,56 @@ describe('User Module (e2e)', () => {
   });
 
   describe('createUser', () => {
+    it('should create an admin', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .send({
+          query: `
+          mutation {
+            createUser(input:{
+              email: "${adminE2E.email}",
+              password: "${adminE2E.password}",
+              role: ${adminE2E.role},
+            }) {
+              ok
+              error
+            }
+          }
+        `,
+        })
+        .expect(200)
+        .expect(res => {
+          expect(res.body.data.createUser.ok).toEqual(true);
+          expect(res.body.data.createUser.error).toEqual(null);
+        });
+    });
+
+    it('should return an error if admin exists', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .send({
+          query: `
+          mutation {
+            createUser(input:{
+              email: "${adminE2E.email}",
+              password: "${adminE2E.password}",
+              role: ${adminE2E.role},
+            }) {
+              ok
+              error
+            }
+          }
+        `,
+        })
+        .expect(200)
+        .expect(res => {
+          expect(res.body.data.createUser.ok).toEqual(false);
+          expect(res.body.data.createUser.error).toEqual(
+            'Admin already exists.',
+          );
+        });
+    });
+
     it('should create a user', () => {
       return request(app.getHttpServer())
         .post(GRAPHQL_ENDPOINT)
@@ -47,9 +90,9 @@ describe('User Module (e2e)', () => {
           query: `
           mutation {
             createUser(input:{
-              email: "${userData.email}",
-              password: "${userData.password}",
-              role: ${userData.role},
+              email: "${customerE2E.email}",
+              password: "${customerE2E.password}",
+              role: ${customerE2E.role},
             }) {
               ok
               error
@@ -71,9 +114,9 @@ describe('User Module (e2e)', () => {
           query: `
           mutation {
             createUser(input:{
-              email: "${userData.email}",
-              password: "${userData.password}",
-              role: ${userData.role},
+              email: "${customerE2E.email}",
+              password: "${customerE2E.password}",
+              role: ${customerE2E.role},
             }) {
               ok
               error
@@ -100,7 +143,7 @@ describe('User Module (e2e)', () => {
           mutation {
             login(input:{
               email:"invalid@email.com",
-              password:"${userData.password}"
+              password:"${customerE2E.password}"
             }) {
               ok
               token
@@ -124,7 +167,7 @@ describe('User Module (e2e)', () => {
           query: `
           mutation {
             login(input:{
-              email:"${userData.email}",
+              email:"${customerE2E.email}",
               password:"invalid.password"
             }) {
               ok
@@ -149,8 +192,8 @@ describe('User Module (e2e)', () => {
           query: `
           mutation {
             login(input:{
-              email:"${userData.email}",
-              password:"${userData.password}"
+              email:"${customerE2E.email}",
+              password:"${customerE2E.password}"
             }) {
               ok
               token
@@ -213,7 +256,7 @@ describe('User Module (e2e)', () => {
         .expect(res => {
           expect(res.body.data.seeMe.ok).toEqual(true);
           expect(res.body.data.seeMe.error).toEqual(null);
-          expect(res.body.data.seeMe.result.email).toEqual(userData.email);
+          expect(res.body.data.seeMe.result.email).toEqual(customerE2E.email);
         });
     });
   });

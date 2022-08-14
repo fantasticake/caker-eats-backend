@@ -29,8 +29,12 @@ export class UserService {
 
   async createUser(input: CreateUserInput): Promise<CreateUserOutput> {
     try {
-      if (input.role == UserRole.Admin)
-        return { ok: false, error: 'Cannot create with admin role.' };
+      if (input.role == UserRole.Admin) {
+        const existingAdmin = await this.usersRepository.findOneBy({
+          role: UserRole.Admin,
+        });
+        if (existingAdmin) return { ok: false, error: 'Admin already exists.' };
+      }
 
       const existingUser = await this.usersRepository.findOneBy({
         email: input.email,
@@ -41,16 +45,20 @@ export class UserService {
       this.usersRepository.save(
         this.usersRepository.create({ ...input, password: hashed }),
       );
-      const verification = await this.verificationsRepository.save(
-        this.verificationsRepository.create({
-          code: Date.now() + '',
-          email: input.email,
-        }),
-      );
-      await this.mailService.sendVerificationEmail(
-        input.email,
-        verification.code,
-      );
+
+      if (input.role != UserRole.Admin) {
+        const verification = await this.verificationsRepository.save(
+          this.verificationsRepository.create({
+            code: Date.now() + '',
+            email: input.email,
+          }),
+        );
+        await this.mailService.sendVerificationEmail(
+          input.email,
+          verification.code,
+        );
+      }
+
       return { ok: true };
     } catch {
       return { ok: false, error: 'Cannot create a user.' };

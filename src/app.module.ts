@@ -49,11 +49,16 @@ import { ScheduleModule } from '@nestjs/schedule';
       },
       autoSchemaFile: true,
       context: ({ req, connectionParams }) => {
-        let token: string;
-        if (req?.headers[HEADER_TOKEN]) token = req.headers[HEADER_TOKEN];
-        else if (connectionParams[HEADER_TOKEN])
-          token = connectionParams[HEADER_TOKEN];
-        return { token };
+        try {
+          let token: string;
+          if (req?.headers[HEADER_TOKEN]) token = req.headers[HEADER_TOKEN];
+          else if (connectionParams && connectionParams[HEADER_TOKEN])
+            token = connectionParams[HEADER_TOKEN];
+          return { token };
+        } catch (error) {
+          console.log(error);
+          return;
+        }
       },
     }),
     TypeOrmModule.forRoot({

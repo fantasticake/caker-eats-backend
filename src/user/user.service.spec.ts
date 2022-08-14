@@ -96,14 +96,16 @@ describe('UserService', () => {
     };
 
     it('should return an error if role is admin', async () => {
+      usersRepository.findOneBy.mockResolvedValueOnce(customerTestData);
       const result = await userService.createUser({
         ...input,
         role: UserRole.Admin,
       });
-      expect(result).toEqual({
-        ok: false,
-        error: 'Cannot create with admin role.',
+      expect(usersRepository.findOneBy).toBeCalledTimes(1);
+      expect(usersRepository.findOneBy).toBeCalledWith({
+        role: UserRole.Admin,
       });
+      expect(result).toEqual({ ok: false, error: 'Admin already exists.' });
     });
 
     it('should return an error if email exists', async () => {
