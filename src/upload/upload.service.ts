@@ -28,7 +28,8 @@ export class UploadService {
         .promise();
 
       return { ok: true, result: url };
-    } catch {
+    } catch (error) {
+      console.log(error);
       return { ok: false, error: 'Cannot upload an image.' };
     }
   }

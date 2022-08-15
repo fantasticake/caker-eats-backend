@@ -25,7 +25,7 @@ export class AuthGuard implements CanActivate {
 
       const gqlContext = GqlExecutionContext.create(context).getContext();
       const token: string =
-        gqlContext.token || gqlContext.req.headers[HEADER_TOKEN];
+        gqlContext?.token || gqlContext?.req?.headers[HEADER_TOKEN];
       if (!token) return false;
 
       const decoded = this.jwtService.verify(token);

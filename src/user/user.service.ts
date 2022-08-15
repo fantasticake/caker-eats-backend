@@ -42,7 +42,7 @@ export class UserService {
       if (existingUser) return { ok: false, error: 'Email already exists.' };
 
       const hashed = await bcrypt.hash(input.password, HASH_ROUNDS);
-      this.usersRepository.save(
+      await this.usersRepository.save(
         this.usersRepository.create({ ...input, password: hashed }),
       );
 
@@ -71,10 +71,12 @@ export class UserService {
       if (!user) {
         return { ok: false, error: 'User not found.' };
       }
+
       const isValid = await bcrypt.compare(input.password, user.password);
       if (!isValid) {
         return { ok: false, error: 'Invalid password.' };
       }
+
       const token = this.jwtService.sign({ userId: user.id });
       return { ok: true, token };
     } catch {

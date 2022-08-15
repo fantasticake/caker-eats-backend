@@ -11,3 +11,9 @@ export const customerE2E = {
   password: '1234',
   role: UserRole.Customer,
 };
+
+export const categoryE2E = {
+  name: 'test category',
+  slug: 'test-category',
+  imageUrl: 'image url',
+};

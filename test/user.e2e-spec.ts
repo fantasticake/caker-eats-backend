@@ -6,8 +6,8 @@ import { HEADER_TOKEN } from 'src/jwt/jwt.constants';
 import { Repository } from 'typeorm';
 import { Verification } from 'src/user/entities/verification.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { GRAPHQL_ENDPOINT } from './constants-e2e';
-import { adminE2E, customerE2E } from './data-e2e';
+import { GRAPHQL_ENDPOINT } from './shared/constants-e2e';
+import { adminE2E, customerE2E } from './shared/data-e2e';
 
 jest.mock('mailgun-js', () => {
   return () => ({ messages: () => ({ send: () => {} }) });
