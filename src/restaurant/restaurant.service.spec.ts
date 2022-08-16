@@ -50,7 +50,7 @@ describe('RestaurantService', () => {
   describe('createRestaurant', () => {
     const input: CreateRestaurantInput = {
       name: restaurantTestData.name,
-      categoryId: restaurantTestData.category.id,
+      categorySlug: restaurantTestData.category.slug,
     };
     it('should return an error if restaurant exists', async () => {
       const result = await restaurantService.createRestaurant(
@@ -88,7 +88,7 @@ describe('RestaurantService', () => {
       });
       expect(categoriesRepo.findOneBy).toBeCalledTimes(1);
       expect(categoriesRepo.findOneBy).toBeCalledWith({
-        id: input.categoryId,
+        slug: input.categorySlug,
       });
       expect(result).toEqual({ ok: false, error: 'Category does not exists.' });
     });
@@ -191,7 +191,7 @@ describe('RestaurantService', () => {
   describe('editRestaurant', () => {
     const input: EditRestaurantInput = {
       name: restaurantTestData.name,
-      categoryId: restaurantTestData.category.id,
+      categorySlug: restaurantTestData.category.slug,
     };
     it('should return an error if restaurant not exists', async () => {
       const result = await restaurantService.editRestaurant(input, {
@@ -226,7 +226,7 @@ describe('RestaurantService', () => {
       );
       expect(categoriesRepo.findOneBy).toBeCalledTimes(1);
       expect(categoriesRepo.findOneBy).toBeCalledWith({
-        id: input.categoryId,
+        slug: input.categorySlug,
       });
       expect(result).toEqual({ ok: false, error: 'Category not found.' });
     });
@@ -242,8 +242,8 @@ describe('RestaurantService', () => {
       expect(restaurantsRepo.save).toBeCalledWith({
         id: ownerTestData.restaurantId,
         ...input,
-        ...(input.categoryId && {
-          category: { id: input.categoryId },
+        ...(input.categorySlug && {
+          category: { slug: input.categorySlug },
         }),
       });
       expect(result).toEqual({ ok: true });

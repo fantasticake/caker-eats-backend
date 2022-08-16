@@ -20,13 +20,14 @@ export class DishService {
     try {
       if (!loggedInUser.restaurantId)
         return { ok: false, error: 'Restaurant not exists.' };
-      await this.dishesRepository.save(
+
+      const dish = await this.dishesRepository.save(
         this.dishesRepository.create({
           ...input,
           restaurant: { id: loggedInUser.restaurantId },
         }),
       );
-      return { ok: true };
+      return { ok: true, dishId: dish.id };
     } catch {
       return { ok: false, error: 'Cannot create a dish.' };
     }
@@ -37,11 +38,15 @@ export class DishService {
     loggedInUser: User,
   ): Promise<EditDishOutput> {
     try {
+      if (!loggedInUser.restaurantId)
+        return { ok: false, error: 'Restaurant not exists.' };
+
       const existingDish = await this.dishesRepository.findOneBy({
         id: input.dishId,
         restaurant: { id: loggedInUser.restaurantId },
       });
       if (!existingDish) return { ok: false, error: 'Dish not found.' };
+
       await this.dishesRepository.save({ id: input.dishId, ...input });
       return { ok: true };
     } catch {
@@ -54,11 +59,15 @@ export class DishService {
     loggedInUser: User,
   ): Promise<DeleteDishOutput> {
     try {
+      if (!loggedInUser.restaurantId)
+        return { ok: false, error: 'Restaurant not exists.' };
+
       const existingDish = await this.dishesRepository.findOneBy({
         id: input.dishId,
         restaurant: { id: loggedInUser.restaurantId },
       });
       if (!existingDish) return { ok: false, error: 'Dish not found.' };
+
       await this.dishesRepository.delete({ id: input.dishId });
       return { ok: true };
     } catch {

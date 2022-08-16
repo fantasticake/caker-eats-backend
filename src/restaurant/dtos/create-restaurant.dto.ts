@@ -8,8 +8,8 @@ export class CreateRestaurantInput extends PickType(
   ['name', 'imageUrl'],
   InputType,
 ) {
-  @Field(type => Number)
-  categoryId: number;
+  @Field(type => String)
+  categorySlug: string;
 }
 
 @ObjectType()

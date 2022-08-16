@@ -48,13 +48,14 @@ describe('DishService', () => {
 
     it('should create a dish', async () => {
       dishesRepository.create.mockReturnValueOnce(dishTestData);
+      dishesRepository.save.mockResolvedValueOnce(dishTestData);
       const result = await dishService.createDish(input, ownerTestData);
       expect(dishesRepository.create).toBeCalledTimes(1);
       expect(dishesRepository.create).toBeCalledWith({
         ...input,
         restaurant: { id: ownerTestData.restaurantId },
       });
-      expect(result).toEqual({ ok: true });
+      expect(result).toEqual({ ok: true, dishId: dishTestData.id });
     });
 
     it('should return error if it fails', async () => {

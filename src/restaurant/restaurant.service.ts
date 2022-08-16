@@ -52,7 +52,7 @@ export class RestaurantService {
         return { ok: false, error: 'Restaurant name already exists.' };
 
       const existingCategory = await this.categoriesRepo.findOneBy({
-        id: input.categoryId,
+        slug: input.categorySlug,
       });
       if (!existingCategory)
         return { ok: false, error: 'Category does not exists.' };
@@ -65,7 +65,8 @@ export class RestaurantService {
         }),
       );
       return { ok: true };
-    } catch {
+    } catch (error) {
+      console.log(error);
       return { ok: false, error: 'Cannot create a restaurant.' };
     }
   }
@@ -127,9 +128,9 @@ export class RestaurantService {
             error: 'Restaurant name already exists.',
           };
       }
-      if (input.categoryId) {
+      if (input.categorySlug) {
         const existingCategory = await this.categoriesRepo.findOneBy({
-          id: input.categoryId,
+          slug: input.categorySlug,
         });
         if (!existingCategory)
           return { ok: false, error: 'Category not found.' };
@@ -137,8 +138,8 @@ export class RestaurantService {
       await this.restaurantsRepo.save({
         id: loggedInUser.restaurantId,
         ...input,
-        ...(input.categoryId && {
-          category: { id: input.categoryId },
+        ...(input.categorySlug && {
+          category: { slug: input.categorySlug },
         }),
       });
       return { ok: true };

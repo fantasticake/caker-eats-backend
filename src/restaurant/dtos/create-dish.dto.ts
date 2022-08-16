@@ -1,4 +1,4 @@
-import { InputType, ObjectType, PickType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
 import { SharedOutput } from 'src/shared/shared.dto';
 import { Dish } from '../entities/dish.entity';
 
@@ -10,4 +10,7 @@ export class CreateDishInput extends PickType(
 ) {}
 
 @ObjectType()
-export class CreateDishOutput extends SharedOutput {}
+export class CreateDishOutput extends SharedOutput {
+  @Field(type => Number, { nullable: true })
+  dishId?: number;
+}

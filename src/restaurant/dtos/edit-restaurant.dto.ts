@@ -12,8 +12,8 @@ import { Restaurant } from '../entities/restaurant.entity';
 export class EditRestaurantInput extends PartialType(
   PickType(Restaurant, ['name', 'imageUrl'], InputType),
 ) {
-  @Field(type => Number, { nullable: true })
-  categoryId?: number;
+  @Field(type => String, { nullable: true })
+  categorySlug?: string;
 }
 
 @ObjectType()
