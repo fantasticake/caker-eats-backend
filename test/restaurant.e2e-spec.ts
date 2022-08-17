@@ -18,7 +18,7 @@ import {
   ownerE2E,
   restaurantE2E,
 } from './shared/data-e2e';
-import { gqlTest } from './shared/utils';
+import { gqlTest } from './shared/utils-e2e';
 
 describe('Restaurant Module (e2e)', () => {
   let app: INestApplication;

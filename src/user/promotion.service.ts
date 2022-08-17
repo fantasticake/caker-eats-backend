@@ -26,11 +26,8 @@ export class PromotionService {
     loggedInUser: User,
   ): Promise<CreatePromotionOutput> {
     try {
-      const existingRestaurant = await this.restaurantsRepo.findOneBy({
-        id: loggedInUser.restaurantId,
-      });
-      if (!existingRestaurant)
-        return { ok: false, error: 'Restaurant not found.' };
+      if (!loggedInUser.restaurantId)
+        return { ok: false, error: 'Restaurant not exists.' };
 
       await this.promotionsRepo.save(
         this.promotionsRepo.create({
@@ -39,8 +36,11 @@ export class PromotionService {
         }),
       );
 
-      const expireDate = existingRestaurant.isPromoted
-        ? new Date(existingRestaurant.promotionExpireDate)
+      const restaurant = await this.restaurantsRepo.findOneBy({
+        id: loggedInUser.restaurantId,
+      });
+      const expireDate = restaurant.isPromoted
+        ? new Date(restaurant.promotionExpireDate)
         : new Date();
       expireDate.setDate(expireDate.getDate() + PROMOTION_DAYS),
         await this.restaurantsRepo.save({

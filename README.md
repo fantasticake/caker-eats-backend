@@ -2,4 +2,4 @@
 
 Clone Uber Eats backend with Nest.js and GraphQL
 
-e2e testing (user(promotion), order)
+e2e testing (order)

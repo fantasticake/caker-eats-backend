@@ -143,7 +143,7 @@ describe('OrderService', () => {
   });
 
   describe('canAccessOrder', () => {
-    it('should return false if not accesable', () => {
+    it('should return false if not accessible', () => {
       const result = orderService.canAccessOrder(orderTestData, {
         ...customerTestData,
         id: 999,
@@ -151,7 +151,7 @@ describe('OrderService', () => {
       expect(result).toEqual(false);
     });
 
-    it('should return true if accesable', () => {
+    it('should return true if accessible', () => {
       const result = orderService.canAccessOrder(
         orderTestData,
         customerTestData,
@@ -177,7 +177,7 @@ describe('OrderService', () => {
       expect(result).toEqual({ ok: false, error: 'Order not found.' });
     });
 
-    it('should return an error if not accesable', async () => {
+    it('should return an error if not accessible', async () => {
       ordersRepo.findOne.mockResolvedValueOnce(orderTestData);
       const result = await orderService.seeOrder(input, {
         ...customerTestData,
@@ -217,7 +217,7 @@ describe('OrderService', () => {
       expect(result).toEqual({ ok: false, error: 'Order not found.' });
     });
 
-    it('should return an error if not accesable', async () => {
+    it('should return an error if not accessible', async () => {
       ordersRepo.findOne.mockResolvedValueOnce(orderTestData);
       const result = await orderService.editOrderStatus(input, {
         ...ownerTestData,

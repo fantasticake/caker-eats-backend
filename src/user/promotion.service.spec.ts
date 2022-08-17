@@ -48,16 +48,11 @@ describe('PromotionService', () => {
       transactionId: promotionTestData.transactionId,
     };
     it('should return an error if restaurant does not exist', async () => {
-      restaurantsRepo.findOneBy.mockResolvedValueOnce(null);
-      const result = await promotionService.createPromotion(
-        input,
-        ownerTestData,
-      );
-      expect(restaurantsRepo.findOneBy).toBeCalledTimes(1);
-      expect(restaurantsRepo.findOneBy).toBeCalledWith({
-        id: ownerTestData.restaurantId,
+      const result = await promotionService.createPromotion(input, {
+        ...ownerTestData,
+        restaurantId: null,
       });
-      expect(result).toEqual({ ok: false, error: 'Restaurant not found.' });
+      expect(result).toEqual({ ok: false, error: 'Restaurant not exists.' });
     });
 
     it('should create a promotion & promote a restaurant', async () => {
@@ -74,6 +69,10 @@ describe('PromotionService', () => {
       });
       expect(promotionsRepo.save).toBeCalledTimes(1);
       expect(promotionsRepo.save).toBeCalledWith(promotionTestData);
+      expect(restaurantsRepo.findOneBy).toBeCalledTimes(1);
+      expect(restaurantsRepo.findOneBy).toBeCalledWith({
+        id: ownerTestData.restaurantId,
+      });
       expect(restaurantsRepo.save).toBeCalledTimes(1);
       expect(restaurantsRepo.save).toBeCalledWith({
         id: ownerTestData.restaurantId,
