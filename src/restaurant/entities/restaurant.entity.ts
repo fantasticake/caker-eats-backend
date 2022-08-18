@@ -33,7 +33,9 @@ export class Restaurant extends SharedEntity {
   @RelationId((restaurant: Restaurant) => restaurant.owner)
   ownerId: number;
 
-  @ManyToOne(type => Category, (category: Category) => category.restaurants)
+  @ManyToOne(type => Category, (category: Category) => category.restaurants, {
+    onDelete: 'CASCADE',
+  })
   @Field(type => Category)
   category: Category;
 

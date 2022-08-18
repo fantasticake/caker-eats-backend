@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AppModule } from 'src/app.module';
+import { OrderStatus } from 'src/order/entities/order.entity';
 import { CategoryService } from 'src/restaurant/category.service';
 import { DishService } from 'src/restaurant/dish.service';
 import { RestaurantService } from 'src/restaurant/restaurant.service';
@@ -16,7 +17,7 @@ import {
   ownerE2E,
   restaurantE2E,
 } from './shared/data-e2e';
-import { createUserAndGetToken, gqlTest } from './shared/utils-e2e';
+import { clearDB, createUserAndGetToken, gqlTest } from './shared/utils-e2e';
 
 describe('Order Module (e2e)', () => {
   let app: INestApplication;
@@ -28,6 +29,8 @@ describe('Order Module (e2e)', () => {
   let customerToken: string;
   let ownerToken: string;
   let driverToken: string;
+
+  let orderId: number;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
@@ -57,7 +60,8 @@ describe('Order Module (e2e)', () => {
   });
 
   afterAll(async () => {
-    app.close();
+    await clearDB(app);
+    await app.close();
   });
 
   describe('createOrder', () => {
@@ -243,50 +247,418 @@ describe('Order Module (e2e)', () => {
   });
 
   describe('seeOrders', () => {
-    it('should return error if token is not provided', () => {});
+    it('should return error if token is not provided', () => {
+      return gqlTest(
+        app,
+        `
+      {
+        seeOrders {
+          ok
+          error
+          result {
+            id
+          }
+        }
+      }
+      `,
+      )
+        .expect(200)
+        .expect(res => {
+          expect(res.body.errors[0].message).toEqual('Forbidden resource');
+        });
+    });
 
-    it('should return orders', () => {});
+    it('should return orders', () => {
+      return gqlTest(
+        app,
+        `
+      {
+        seeOrders {
+          ok
+          error
+          result {
+            id
+          }
+        }
+      }
+      `,
+        customerToken,
+      )
+        .expect(200)
+        .expect(
+          ({
+            body: {
+              data: {
+                seeOrders: { ok, error, result },
+              },
+            },
+          }) => {
+            expect(ok).toEqual(true);
+            expect(error).toEqual(null);
+            expect(result).toEqual(
+              expect.arrayContaining([{ id: expect.any(Number) }]),
+            );
+            orderId = result[0].id;
+          },
+        );
+    });
   });
 
   describe('seeOrder', () => {
-    it('should return error if token is not provided', () => {});
+    it('should return error if token is not provided', () => {
+      return gqlTest(
+        app,
+        `
+      {
+        seeOrder(input:{
+          orderId:${orderId}
+        }) {
+          ok
+          error
+          result {
+            id
+          }
+        }
+      }
+      `,
+      )
+        .expect(200)
+        .expect(res => {
+          expect(res.body.errors[0].message).toEqual('Forbidden resource');
+        });
+    });
 
-    it('should return error if order not found', () => {});
+    it('should return error if order not found', () => {
+      return gqlTest(
+        app,
+        `
+      {
+        seeOrder(input:{
+          orderId:999
+        }) {
+          ok
+          error
+          result {
+            id
+          }
+        }
+      }
+      `,
+        customerToken,
+      )
+        .expect(200)
+        .expect(
+          ({
+            body: {
+              data: {
+                seeOrder: { ok, error, result },
+              },
+            },
+          }) => {
+            expect(ok).toEqual(false);
+            expect(error).toEqual('Order not found.');
+            expect(result).toEqual(null);
+          },
+        );
+    });
 
-    it('should return error if not accessible', () => {});
+    it('should return error if not accessible', () => {
+      return gqlTest(
+        app,
+        `
+      {
+        seeOrder(input:{
+          orderId:${orderId}
+        }) {
+          ok
+          error
+          result {
+            id
+          }
+        }
+      }
+      `,
+        driverToken,
+      )
+        .expect(200)
+        .expect(
+          ({
+            body: {
+              data: {
+                seeOrder: { ok, error, result },
+              },
+            },
+          }) => {
+            expect(ok).toEqual(false);
+            expect(error).toEqual('Cannot access an order.');
+            expect(result).toEqual(null);
+          },
+        );
+    });
 
-    it('should return order', () => {});
+    it('should return order', () => {
+      return gqlTest(
+        app,
+        `
+      {
+        seeOrder(input:{
+          orderId:${orderId}
+        }) {
+          ok
+          error
+          result {
+            id
+          }
+        }
+      }
+      `,
+        customerToken,
+      )
+        .expect(200)
+        .expect(
+          ({
+            body: {
+              data: {
+                seeOrder: { ok, error, result },
+              },
+            },
+          }) => {
+            expect(ok).toEqual(true);
+            expect(error).toEqual(null);
+            expect(result).toEqual({ id: orderId });
+          },
+        );
+    });
   });
 
   describe('editOrderStatus', () => {
-    it('should return error if role is not driver/owner', () => {});
+    it('should return error if role is not driver/owner', () => {
+      return gqlTest(
+        app,
+        `
+        mutation {
+          editOrderStatus(input:{
+            orderId:${orderId}
+            status:${OrderStatus.Cooking}
+          }) {
+            ok
+            error
+          }
+        }
+      `,
+        customerToken,
+      )
+        .expect(200)
+        .expect(res => {
+          expect(res.body.errors[0].message).toEqual('Forbidden resource');
+        });
+    });
 
-    it('should return error if order not found', () => {});
+    it('should return error if order not found', () => {
+      return gqlTest(
+        app,
+        `
+        mutation {
+          editOrderStatus(input:{
+            orderId:999
+            status:${OrderStatus.Cooking}
+          }) {
+            ok
+            error
+          }
+        }
+      `,
+        ownerToken,
+      )
+        .expect(200)
+        .expect(
+          ({
+            body: {
+              data: {
+                editOrderStatus: { ok, error },
+              },
+            },
+          }) => {
+            expect(ok).toEqual(false);
+            expect(error).toEqual('Order not found.');
+          },
+        );
+    });
 
-    it('should return error if not accessible', () => {});
+    it('should return error if not accessible', () => {
+      return gqlTest(
+        app,
+        `
+        mutation {
+          editOrderStatus(input:{
+            orderId:${orderId}
+            status:${OrderStatus.Cooking}
+          }) {
+            ok
+            error
+          }
+        }
+      `,
+        driverToken,
+      )
+        .expect(200)
+        .expect(
+          ({
+            body: {
+              data: {
+                editOrderStatus: { ok, error },
+              },
+            },
+          }) => {
+            expect(ok).toEqual(false);
+            expect(error).toEqual('Cannot access an order.');
+          },
+        );
+    });
 
-    it('should return error if not allowed', () => {});
+    it('should return error if not allowed', () => {
+      return gqlTest(
+        app,
+        `
+        mutation {
+          editOrderStatus(input:{
+            orderId:${orderId}
+            status:${OrderStatus.PickedUp}
+          }) {
+            ok
+            error
+          }
+        }
+      `,
+        ownerToken,
+      )
+        .expect(200)
+        .expect(
+          ({
+            body: {
+              data: {
+                editOrderStatus: { ok, error },
+              },
+            },
+          }) => {
+            expect(ok).toEqual(false);
+            expect(error).toEqual('Not allowed to edit order status.');
+          },
+        );
+    });
 
-    it('should edit order', () => {});
+    it('should edit order', () => {
+      return gqlTest(
+        app,
+        `
+        mutation {
+          editOrderStatus(input:{
+            orderId:${orderId}
+            status:${OrderStatus.Cooking}
+          }) {
+            ok
+            error
+          }
+        }
+      `,
+        ownerToken,
+      )
+        .expect(200)
+        .expect(
+          ({
+            body: {
+              data: {
+                editOrderStatus: { ok, error },
+              },
+            },
+          }) => {
+            expect(ok).toEqual(true);
+            expect(error).toEqual(null);
+          },
+        );
+    });
   });
 
   describe('pickupOrder', () => {
-    it('should return error if role is not driver', () => {});
+    it('should return error if role is not driver', () => {
+      return gqlTest(
+        app,
+        `
+        mutation {
+          pickupOrder(input:{
+            orderId:${orderId}
+          }) {
+            ok
+            error
+          }
+        }
+      `,
+        customerToken,
+      )
+        .expect(200)
+        .expect(res => {
+          expect(res.body.errors[0].message).toEqual('Forbidden resource');
+        });
+    });
 
-    it('should return error if order not found', () => {});
+    it('should return error if order not found', () => {
+      return gqlTest(
+        app,
+        `
+        mutation {
+          pickupOrder(input:{
+            orderId:999
+          }) {
+            ok
+            error
+          }
+        }
+      `,
+        driverToken,
+      )
+        .expect(200)
+        .expect(
+          ({
+            body: {
+              data: {
+                pickupOrder: { ok, error },
+              },
+            },
+          }) => {
+            expect(ok).toEqual(false);
+            expect(error).toEqual('Order not found.');
+          },
+        );
+    });
 
-    it('should pickup order', () => {});
-  });
-
-  describe('orderCreated', () => {
-    it('should return error if role is not owner', () => {});
-  });
-
-  describe('orderStatusChanged', () => {
-    it('should return error if token is not provided', () => {});
-  });
-
-  describe('orderCooked', () => {
-    it('should return error if role is not driver', () => {});
+    it('should pickup order', () => {
+      return gqlTest(
+        app,
+        `
+        mutation {
+          pickupOrder(input:{
+            orderId:${orderId}
+          }) {
+            ok
+            error
+          }
+        }
+      `,
+        driverToken,
+      )
+        .expect(200)
+        .expect(
+          ({
+            body: {
+              data: {
+                pickupOrder: { ok, error },
+              },
+            },
+          }) => {
+            expect(ok).toEqual(true);
+            expect(error).toEqual(null);
+          },
+        );
+    });
   });
 });

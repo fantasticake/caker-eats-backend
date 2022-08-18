@@ -21,6 +21,7 @@ import { HEADER_TOKEN } from './jwt/jwt.constants';
 import { UploadModule } from './upload/upload.module';
 import { Promotion } from './user/entities/promotion.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -74,7 +75,6 @@ import { ScheduleModule } from '@nestjs/schedule';
         Promotion,
       ],
       synchronize: true,
-      dropSchema: process.env.NODE_ENV == 'test',
     }),
     ScheduleModule.forRoot(),
     UserModule,

@@ -3,6 +3,7 @@ import { HEADER_TOKEN } from 'src/jwt/jwt.constants';
 import { CreateUserInput } from 'src/user/dtos/create-user.dto';
 import { UserService } from 'src/user/user.service';
 import * as request from 'supertest';
+import { DataSource } from 'typeorm';
 import { GRAPHQL_ENDPOINT } from './constants-e2e';
 
 export const gqlTest = (
@@ -20,6 +21,11 @@ export const gqlTest = (
   return request(app.getHttpServer()).post(GRAPHQL_ENDPOINT).send({
     query,
   });
+};
+
+export const clearDB = async (app: INestApplication) => {
+  const dataSource = app.get(DataSource);
+  await dataSource.dropDatabase();
 };
 
 export const createUserAndGetToken = async (

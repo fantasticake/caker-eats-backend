@@ -15,7 +15,7 @@ import {
   promotionE2E,
   restaurantE2E,
 } from './shared/data-e2e';
-import { gqlTest } from './shared/utils-e2e';
+import { clearDB, gqlTest } from './shared/utils-e2e';
 import { UserService } from 'src/user/user.service';
 import { RestaurantService } from 'src/restaurant/restaurant.service';
 import { User } from 'src/user/entities/user.entity';
@@ -39,16 +39,17 @@ describe('User Module (e2e)', () => {
     }).compile();
 
     app = module.createNestApplication();
-    userService = app.get(UserService);
-    restaurantService = app.get(RestaurantService);
-    categoryService = app.get(CategoryService);
-    verificationsRepo = app.get(getRepositoryToken(Verification));
-    usersRepo = app.get(getRepositoryToken(User));
+    userService = module.get(UserService);
+    restaurantService = module.get(RestaurantService);
+    categoryService = module.get(CategoryService);
+    verificationsRepo = module.get(getRepositoryToken(Verification));
+    usersRepo = module.get(getRepositoryToken(User));
     await app.init();
   });
 
   afterAll(async () => {
-    app.close();
+    await clearDB(app);
+    await app.close();
   });
 
   describe('user', () => {

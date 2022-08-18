@@ -18,7 +18,7 @@ import {
   ownerE2E,
   restaurantE2E,
 } from './shared/data-e2e';
-import { gqlTest } from './shared/utils-e2e';
+import { clearDB, gqlTest } from './shared/utils-e2e';
 
 describe('Restaurant Module (e2e)', () => {
   let app: INestApplication;
@@ -47,7 +47,8 @@ describe('Restaurant Module (e2e)', () => {
   });
 
   afterAll(async () => {
-    app.close();
+    await clearDB(app);
+    await app.close();
   });
 
   describe('category', () => {

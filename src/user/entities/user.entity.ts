@@ -35,6 +35,7 @@ export class User extends SharedEntity {
 
   @OneToOne(type => Restaurant, (restaurant: Restaurant) => restaurant.owner, {
     nullable: true,
+    onDelete: 'SET NULL',
   })
   @Field(type => Restaurant, { nullable: true })
   restaurant?: Restaurant;

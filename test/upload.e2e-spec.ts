@@ -6,6 +6,7 @@ import { UserService } from 'src/user/user.service';
 import * as request from 'supertest';
 import { customerE2E } from './shared/data-e2e';
 import * as AWS from 'aws-sdk';
+import { clearDB } from './shared/utils-e2e';
 
 const IMAGE_URL = 'IMAGE_URL';
 
@@ -32,7 +33,8 @@ describe('Upload Module (e2e)', () => {
   });
 
   afterAll(async () => {
-    app.close();
+    await clearDB(app);
+    await app.close();
   });
 
   describe('uploadImage', () => {
