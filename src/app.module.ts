@@ -21,7 +21,6 @@ import { HEADER_TOKEN } from './jwt/jwt.constants';
 import { UploadModule } from './upload/upload.module';
 import { Promotion } from './user/entities/promotion.entity';
 import { ScheduleModule } from '@nestjs/schedule';
-import { join } from 'path';
 
 @Module({
   imports: [
