@@ -60,7 +60,8 @@ export class UserService {
       }
 
       return { ok: true };
-    } catch {
+    } catch (error) {
+      console.log(error);
       return { ok: false, error: 'Cannot create a user.' };
     }
   }
