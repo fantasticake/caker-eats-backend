@@ -8,10 +8,7 @@ import { User } from 'src/user/entities/user.entity';
 export class UploadService {
   constructor(private readonly configService: ConfigService) {}
 
-  async uploadImage(
-    image: Express.Multer.File,
-    loggedInUser: User,
-  ): Promise<UploadImageOutput> {
+  async uploadImage(image: Express.Multer.File): Promise<UploadImageOutput> {
     try {
       const s3 = new AWS.S3({
         accessKeyId: this.configService.get('AWS_KEY_ID'),
@@ -23,7 +20,7 @@ export class UploadService {
           ACL: 'public-read',
           Bucket: 'caker-eats-uploads',
           Body: image.buffer,
-          Key: `${loggedInUser.id}-${Date.now()}-${image.originalname}`,
+          Key: `${Date.now()}-${image.originalname}`,
         })
         .promise();
 

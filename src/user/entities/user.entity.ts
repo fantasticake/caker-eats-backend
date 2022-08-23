@@ -40,6 +40,7 @@ export class User extends SharedEntity {
   @Field(type => Restaurant, { nullable: true })
   restaurant?: Restaurant;
 
+  @Field(type => Number, { nullable: true })
   @RelationId((user: User) => user.restaurant)
   restaurantId?: number;
 
