@@ -13,4 +13,7 @@ export class CreateRestaurantInput extends PickType(
 }
 
 @ObjectType()
-export class CreateRestaurantOutput extends SharedOutput {}
+export class CreateRestaurantOutput extends SharedOutput {
+  @Field(type => Number, { nullable: true })
+  restaurantId?: number;
+}

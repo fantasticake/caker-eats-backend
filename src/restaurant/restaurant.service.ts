@@ -57,14 +57,14 @@ export class RestaurantService {
       if (!existingCategory)
         return { ok: false, error: 'Category does not exists.' };
 
-      await this.restaurantsRepo.save(
+      const restaurant = await this.restaurantsRepo.save(
         this.restaurantsRepo.create({
           ...input,
           owner: loggedInUser,
           category: existingCategory,
         }),
       );
-      return { ok: true };
+      return { ok: true, restaurantId: restaurant.id };
     } catch (error) {
       console.log(error);
       return { ok: false, error: 'Cannot create a restaurant.' };
