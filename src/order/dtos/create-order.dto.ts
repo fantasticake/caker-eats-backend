@@ -13,4 +13,7 @@ export class CreateOrderInput extends PickType(
 }
 
 @ObjectType()
-export class CreateOrderOutput extends SharedOutput {}
+export class CreateOrderOutput extends SharedOutput {
+  @Field(type => Number, { nullable: true })
+  orderId?: number;
+}

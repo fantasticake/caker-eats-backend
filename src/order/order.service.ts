@@ -64,7 +64,7 @@ export class OrderService {
         }),
       );
       this.pubSub.publish(ORDER_CREATED_TRIGGER, { orderCreated: order });
-      return { ok: true };
+      return { ok: true, orderId: order.id };
     } catch {
       return { ok: false, error: 'Cannot create an order.' };
     }
@@ -109,7 +109,7 @@ export class OrderService {
         where: {
           id: input.orderId,
         },
-        relations: ['restaurant', 'driver', 'customer'],
+        relations: ['restaurant.menu', 'driver', 'customer'],
       });
       if (!existingOrder) return { ok: false, error: 'Order not found.' };
 
