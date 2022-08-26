@@ -12,6 +12,10 @@ import {
 } from './dtos/edit-order-status.dto';
 import { OrderStatusChangedInput } from './dtos/order-status-changed.dto';
 import { PickupOrderInput, PickupOrderOutput } from './dtos/pickup-order.dto';
+import {
+  SeeCookedOrdersInput,
+  SeeCookedOrdersOutput,
+} from './dtos/see-cooked-orders.dto';
 import { SeeOrderInput, SeeOrderOutput } from './dtos/see-order.dto';
 import { SeeOrdersOutput } from './dtos/see-orders.dto';
 import { Order } from './entities/order.entity';
@@ -60,6 +64,15 @@ export class OrderResolver {
     @LoggedInUser() LoggedInUser: User,
   ): Promise<EditOrderStatusOutput> {
     return this.orderService.editOrderStatus(input, LoggedInUser);
+  }
+
+  @Role([UserRole.Driver])
+  @Query(returns => SeeCookedOrdersOutput)
+  seeCookedOrders(
+    @Args('input') input: SeeCookedOrdersInput,
+    @LoggedInUser() loggedInUser: User,
+  ): Promise<SeeCookedOrdersOutput> {
+    return this.orderService.seeCookedOrders(input, loggedInUser);
   }
 
   @Role([UserRole.Driver])

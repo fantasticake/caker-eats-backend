@@ -2,15 +2,19 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import { Restaurant } from 'src/restaurant/entities/restaurant.entity';
-import { PUBSUB_TOKEN } from 'src/shared/shared.constants';
+import { PAGINATION_TAKE, PUBSUB_TOKEN } from 'src/shared/shared.constants';
 import { User, UserRole } from 'src/user/entities/user.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
 import {
   EditOrderStatusInput,
   EditOrderStatusOutput,
 } from './dtos/edit-order-status.dto';
 import { PickupOrderInput, PickupOrderOutput } from './dtos/pickup-order.dto';
+import {
+  SeeCookedOrdersInput,
+  SeeCookedOrdersOutput,
+} from './dtos/see-cooked-orders.dto';
 import { SeeOrderInput, SeeOrderOutput } from './dtos/see-order.dto';
 import { SeeOrdersOutput } from './dtos/see-orders.dto';
 import { Order, OrderStatus } from './entities/order.entity';
@@ -170,6 +174,27 @@ export class OrderService {
       return { ok: true };
     } catch {
       return { ok: false, error: 'Cannot edit an order status.' };
+    }
+  }
+
+  async seeCookedOrders(
+    input: SeeCookedOrdersInput,
+    loggedInUser: User,
+  ): Promise<SeeCookedOrdersOutput> {
+    try {
+      const [orders, totalOrders] = await this.ordersRepo.findAndCount({
+        where: { status: OrderStatus.Cooked },
+        skip: (input.page - 1) * PAGINATION_TAKE,
+        take: PAGINATION_TAKE,
+        relations: ['customer', 'restaurant'],
+      });
+      return {
+        ok: true,
+        result: orders.filter(order => !order.driverId),
+        totalPages: Math.ceil(totalOrders / PAGINATION_TAKE),
+      };
+    } catch (error) {
+      return { ok: false, error: 'Cannot see orders.' };
     }
   }
 
