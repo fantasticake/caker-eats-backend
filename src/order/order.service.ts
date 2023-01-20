@@ -212,7 +212,7 @@ export class OrderService {
       existingOrder.driver = loggedInUser;
       existingOrder.status = OrderStatus.PickedUp;
       await this.ordersRepo.save(existingOrder);
-      return { ok: true };
+      return { ok: true, orderId: existingOrder.id };
     } catch {
       return { ok: false, error: 'Cannot pickup an order.' };
     }

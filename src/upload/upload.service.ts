@@ -2,7 +2,6 @@ import { UploadImageOutput } from './dtos/upload-image.dto';
 import * as AWS from 'aws-sdk';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class UploadService {
@@ -23,7 +22,6 @@ export class UploadService {
           Key: `${Date.now()}-${image.originalname}`,
         })
         .promise();
-
       return { ok: true, result: url };
     } catch (error) {
       console.log(error);

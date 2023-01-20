@@ -1,14 +1,13 @@
 import {
   Controller,
   FileTypeValidator,
+  Header,
   ParseFilePipe,
   Post,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { LoggedInUser } from 'src/auth/decorators/logged-in-user.decorator';
-import { User } from 'src/user/entities/user.entity';
 import { UploadImageOutput } from './dtos/upload-image.dto';
 import { UploadService } from './upload.service';
 
@@ -18,6 +17,7 @@ export class UploadController {
 
   @Post('/')
   @UseInterceptors(FileInterceptor('image'))
+  @Header('Access-Control-Allow-Origin', '*')
   async uploadImage(
     @UploadedFile(
       new ParseFilePipe({

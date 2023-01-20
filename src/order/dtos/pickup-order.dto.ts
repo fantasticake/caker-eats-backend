@@ -8,4 +8,7 @@ export class PickupOrderInput {
 }
 
 @ObjectType()
-export class PickupOrderOutput extends SharedOutput {}
+export class PickupOrderOutput extends SharedOutput {
+  @Field(type => Number, { nullable: true })
+  orderId?: number;
+}

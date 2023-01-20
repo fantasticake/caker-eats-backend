@@ -73,7 +73,7 @@ import { ScheduleModule } from '@nestjs/schedule';
         Order,
         Promotion,
       ],
-      synchronize: true,
+      synchronize: process.env.NODE_ENV == 'development',
     }),
     ScheduleModule.forRoot(),
     UserModule,
