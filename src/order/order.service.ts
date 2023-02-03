@@ -78,16 +78,34 @@ export class OrderService {
     try {
       let result: Order[];
       if (loggedInUser.role == UserRole.Customer) {
-        result = await this.ordersRepo.findBy({
-          customer: { id: loggedInUser.id },
+        result = await this.ordersRepo.find({
+          where: {
+            customer: { id: loggedInUser.id },
+          },
+          relations: ['restaurant'],
+          order: {
+            createdAt: 'DESC',
+          },
         });
       } else if (loggedInUser.role == UserRole.Driver) {
-        result = await this.ordersRepo.findBy({
-          driver: { id: loggedInUser.id },
+        result = await this.ordersRepo.find({
+          where: {
+            driver: { id: loggedInUser.id },
+          },
+          relations: ['restaurant'],
+          order: {
+            createdAt: 'DESC',
+          },
         });
       } else if (loggedInUser.role == UserRole.Owner) {
-        result = await this.ordersRepo.findBy({
-          restaurant: { owner: { id: loggedInUser.id } },
+        result = await this.ordersRepo.find({
+          where: {
+            restaurant: { owner: { id: loggedInUser.id } },
+          },
+          relations: ['restaurant'],
+          order: {
+            createdAt: 'DESC',
+          },
         });
       }
       return { ok: true, result };
