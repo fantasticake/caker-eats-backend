@@ -202,6 +202,7 @@ export class OrderService {
     try {
       const [orders, totalOrders] = await this.ordersRepo.findAndCount({
         where: { status: OrderStatus.Cooked },
+        order: { createdAt: 'ASC' },
         skip: (input.page - 1) * PAGINATION_TAKE,
         take: PAGINATION_TAKE,
         relations: ['customer', 'restaurant'],
