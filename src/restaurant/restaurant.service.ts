@@ -86,7 +86,8 @@ export class RestaurantService {
         result: restaurants,
         totalPages: Math.ceil(totalRestaurants / PAGINATION_TAKE),
       };
-    } catch {
+    } catch (e) {
+      console.log(e);
       return { ok: false, error: 'Cannot see restaurants.' };
     }
   }
