@@ -38,7 +38,8 @@ export class CategoryService {
         this.categoriesRepo.create({ ...input, slug }),
       );
       return { ok: true };
-    } catch {
+    } catch (e) {
+      console.log(e);
       return { ok: false, error: 'Cannot create a category.' };
     }
   }
