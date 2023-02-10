@@ -28,7 +28,7 @@ export class CategoryService {
     input: CreateCategoryInput,
   ): Promise<CreateCategoryOutput> {
     try {
-      const slug = input.name.trim().toLowerCase().replaceAll(/\s+/g, '-');
+      const slug = input.name.trim().toLowerCase().replace(/\s+/g, '-');
       const existingCategory = await this.categoriesRepo.findOneBy({
         slug,
       });
@@ -50,7 +50,8 @@ export class CategoryService {
     try {
       await this.categoriesRepo.delete({ slug: input.slug });
       return { ok: true };
-    } catch {
+    } catch (e) {
+      console.log(e);
       return { ok: false, error: 'Cannot delete category.' };
     }
   }
@@ -59,7 +60,8 @@ export class CategoryService {
     try {
       const categories = await this.categoriesRepo.find();
       return { ok: true, result: categories };
-    } catch {
+    } catch (e) {
+      console.log(e);
       return { ok: false, error: 'Cannot see categories.' };
     }
   }
@@ -84,7 +86,8 @@ export class CategoryService {
         result: { ...category, restaurants },
         totalPages: Math.ceil(totalRestaurants / PAGINATION_TAKE),
       };
-    } catch {
+    } catch (e) {
+      console.log(e);
       return { ok: false, error: 'Cannot see category.' };
     }
   }
